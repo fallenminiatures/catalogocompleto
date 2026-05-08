@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+                            <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -129,7 +129,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentRate = 18.00, clipData = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = "";
+    let currentRate = 18.00, clipData = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = null;
 
     // 1. Catálogo y Tipo de Cambio
     async function fetchCatalog() {
@@ -203,7 +203,7 @@
         }
     }
 
-    // 3. RECUPERACIÓN DE DATOS (Ruta original: clientes_v3)
+    // 3. RECUPERACIÓN DE DATOS
     db.ref('clientes_v3').on('value', snap => {
         clipData = snap.val() || {};
         const list = document.getElementById('client-list'); 
@@ -272,7 +272,17 @@
         html += `</div>
             <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay()">+ PRODUCTO</button>
             <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
-                <label class="label" style="color:#666">DESCUENTO</label>
+                <div style="display:flex; gap:10px">
+                    <div style="flex:1">
+                        <label class="label" style="color:#666">ADELANTO (60%)</label>
+                        <input type="number" id="edit-ade-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.ade}" oninput="syncManualMoney()">
+                    </div>
+                    <div style="flex:1">
+                        <label class="label" style="color:#666">SALDO (40%)</label>
+                        <input type="number" id="edit-sal-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.sal}" oninput="syncManualMoney()">
+                    </div>
+                </div>
+                <label class="label" style="color:#666; margin-top:10px">DESCUENTO</label>
                 <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
                 <label class="label" style="color:#666">ENVÍO MXN</label>
                 <input type="number" id="edit-ship-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.env}" oninput="overlayRecalc()">
@@ -282,7 +292,8 @@
         document.getElementById('overlay').style.display = 'block';
     }
 
-        function overlayRecalc() {
+    function overlayRecalc() {
+        if(!activeCardId) return;
         const {cid, idx} = activeCardId;
         const p = clipData[cid].pedidos[idx];
         let usd = 0;
@@ -293,14 +304,12 @@
             usd += (q * pr);
             p.items.push({ nom: r.querySelector('.it-n').value, cant: q, prec: pr });
         });
-        
         const ship = parseFloat(document.getElementById('edit-ship-single').value) || 0;
         const dIn = document.getElementById('edit-desc-single').value;
         let mxn = usd * currentRate;
         let dM = Math.ceil(parseDiscount(dIn, mxn));
         let mxnD = mxn - dM;
 
-        // Cálculo de valores
         p.ade = Math.ceil(mxnD * 0.6); 
         p.sal = Math.ceil(mxnD * 0.4); 
         p.env = ship; 
@@ -308,14 +317,13 @@
         p.descMonto = dM; 
         p.tot = Math.ceil(mxnD) + ship;
 
-        // Actualizar los inputs en pantalla
         document.getElementById('edit-ade-single').value = p.ade;
         document.getElementById('edit-sal-single').value = p.sal;
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
     }
 
-    // Por si quieres editar el dinero a mano sin cambiar los productos
     function syncManualMoney() {
+        if(!activeCardId) return;
         const {cid, idx} = activeCardId;
         const p = clipData[cid].pedidos[idx];
         p.ade = parseFloat(document.getElementById('edit-ade-single').value) || 0;
@@ -325,11 +333,13 @@
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
     }
 
-
     function closeOverlay() {
-        const {cid, idx} = activeCardId;
-        db.ref(`clientes_v3/${cid}/pedidos/${idx}`).set(clipData[cid].pedidos[idx]);
+        if(activeCardId){
+            const {cid, idx} = activeCardId;
+            db.ref(`clientes_v3/${cid}/pedidos/${idx}`).set(clipData[cid].pedidos[idx]);
+        }
         document.getElementById('overlay').style.display = 'none';
+        activeCardId = null;
     }
 
     // 5. Auxiliares
