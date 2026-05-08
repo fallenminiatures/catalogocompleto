@@ -234,40 +234,65 @@
     });
 
      async function saveOrder() {
-        if(!selectedClientId) return alert("Selecciona un cliente");
-        
-        let itemsStr = "";
-        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
-            const n = r.querySelector('.item-name').value;
-            const q = r.querySelector('.item-qty').value;
-            if(n) itemsStr += `${q}x ${n}, `;
+    if(!selectedClientId) return alert("Selecciona un cliente");
+    
+    let items = [];
+    let itemsStr = "";
+    document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+        const n = r.querySelector('.item-name').value;
+        const q = r.querySelector('.item-qty').value;
+        const p = r.querySelector('.item-price').value;
+        if(n) {
+            items.push({ nom: n, cant: q, prec: p });
+            itemsStr += `${q}x ${n}, `;
+        }
+    });
+
+    const cli = clipData[selectedClientId];
+    const fechaActual = new Date().toLocaleDateString();
+
+    // --- ENVIAR A GOOGLE SHEETS ---
+    const datosSheets = {
+        id: "ORD-" + Date.now(),
+        nombre: cli.nombre,
+        whatsapp: cli.tel,
+        descripcion: itemsStr,
+        costo: lastCalc.tot,
+        notas: `Anticipo: ${lastCalc.ade} | Saldo: ${lastCalc.sal} | Envío: ${lastCalc.ship}`
+    };
+
+    const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+
+    try {
+        // Enviamos a Sheets
+        fetch(urlWebApp, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datosSheets)
         });
 
-        const cli = clipData[selectedClientId];
-        const datos = {
-            id: "ORD-" + Date.now(),
-            nombre: cli.nombre,
-            whatsapp: cli.tel,
-            descripcion: itemsStr,
-            costo: lastCalc.tot,
-            notas: `Anticipo: ${lastCalc.ade} | Saldo: ${lastCalc.sal} | Envío: ${lastCalc.ship}`
-        };
+        // --- CREAR TARJETA EN FIREBASE ---
+        if(!cli.pedidos) cli.pedidos = [];
+        cli.pedidos.push({
+            fecha: fechaActual, 
+            ...lastCalc, 
+            env: lastCalc.ship,
+            items: items, 
+            pagA: false, pagS: false, pagE: false
+        });
 
-        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
-
-        try {
-            await fetch(urlWebApp, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(datos)
-            });
-            alert("¡Pedido registrado en Google Sheets!");
-            showTab('list');
-        } catch (error) {
-            alert("Error al registrar pedido");
-        }
+        // Actualizamos Firebase para que la pestaña BASE lea la nueva tarjeta
+        await db.ref(`clientes_v3/${selectedClientId}`).set(cli);
+        
+        alert("¡Pedido registrado y Tarjeta creada!");
+        showTab('list'); // Esto te lleva automáticamente a ver la tarjeta
+        
+    } catch (error) {
+        alert("Error al sincronizar datos.");
     }
+}
+
 
 
     // 4. Overlay y Edición
