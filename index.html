@@ -251,7 +251,6 @@
     const cli = clipData[selectedClientId];
     const fechaActual = new Date().toLocaleDateString();
 
-    // --- ENVIAR A GOOGLE SHEETS ---
     const datosSheets = {
         id: "ORD-" + Date.now(),
         nombre: cli.nombre,
@@ -264,35 +263,23 @@
     const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
 
     try {
-        // Enviamos a Sheets
-        fetch(urlWebApp, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(datosSheets)
-        });
+        fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
 
-        // --- CREAR TARJETA EN FIREBASE ---
         if(!cli.pedidos) cli.pedidos = [];
         cli.pedidos.push({
-            fecha: fechaActual, 
-            ...lastCalc, 
-            env: lastCalc.ship,
-            items: items, 
-            pagA: false, pagS: false, pagE: false
+            fecha: fechaActual, ...lastCalc, env: lastCalc.ship,
+            items: items, pagA: false, pagS: false, pagE: false
         });
 
-        // Actualizamos Firebase para que la pestaña BASE lea la nueva tarjeta
         await db.ref(`clientes_v3/${selectedClientId}`).set(cli);
-        
         alert("¡Pedido registrado y Tarjeta creada!");
-        showTab('list'); // Esto te lleva automáticamente a ver la tarjeta
-        
+        showTab('list');
+        document.getElementById('search-input').value = "";
+        selectedClientId = "";
     } catch (error) {
-        alert("Error al sincronizar datos.");
+        alert("Error al guardar pedido");
     }
 }
-
 
 
     // 4. Overlay y Edición
@@ -471,57 +458,34 @@
 
     if(!n || !t) return alert("Nombre y Tel obligatorios");
 
-    // 1. Preparamos los datos para Google Sheets
     const datosSheets = {
         id: "CLI-" + Date.now(),
-        nombre: n,
-        whatsapp: t,
-        email: m,
-        direccion: d,
-        descripcion: "REGISTRO DE CLIENTE NUEVO",
-        costo: 0,
-        notas: "Cliente creado desde la pestaña Nuevo"
+        nombre: n, whatsapp: t, email: m, direccion: d,
+        descripcion: "NUEVO CLIENTE", costo: 0, notas: "Registro inicial"
     };
 
     const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
 
     try {
-        // 2. GUARDAR EN GOOGLE SHEETS (Respaldo y Administración)
-        fetch(urlWebApp, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(datosSheets)
-        });
-
-        // 3. GUARDAR EN FIREBASE (Para que el buscador de la app lo encuentre)
-        // Usamos .push() para que Firebase genere un ID único automáticamente
-        await db.ref('clientes_v3').push({ 
-            nombre: n, 
-            tel: t, 
-            email: m, 
-            direccion: d,
-            pedidos: [] // Inicializamos la lista de pedidos vacía
-        });
-
-        alert("¡Cliente guardado con éxito! Ya puedes buscarlo para cotizar.");
+        fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
+        await db.ref('clientes_v3').push({ nombre: n, tel: t, email: m, direccion: d });
+        alert("Cliente guardado en ambos sistemas");
         
-        // Limpiamos los campos y regresamos a la pestaña de cotizar
         document.getElementById('c-nom').value = "";
         document.getElementById('c-tel').value = "";
         document.getElementById('c-mail').value = "";
         document.getElementById('c-dir').value = "";
         showTab('calc');
-
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Hubo un error al guardar el cliente.");
+    } catch (e) {
+        alert("Error al guardar cliente");
     }
-    function showTab(t) { 
-        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.getElementById('b-'+t).classList.add('active');
-        ['calc','new','list'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
-    }
+}
 
+   function showTab(t) { 
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+    document.getElementById('b-'+t).classList.add('active');
+    ['calc','new','list'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
+}
     function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
     function removeOrderCard(cid, idx) { if(confirm("¿Borrar pedido?")) { clipData[cid].pedidos.splice(idx, 1); db.ref(`clientes_v3/${cid}/pedidos`).set(clipData[cid].pedidos); } }
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
