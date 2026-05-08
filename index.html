@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIATURES - Management</title>
+    <title>FALLEN MINIS - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -130,18 +130,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentRate = 18.00, clientesGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeOverlayId = "";
+    let currentRate = 18.00, clientesGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeOverlayId = "", activeOrderIdx = null;
 
     async function fetchCatalog() {
         try {
-            // Se usa no-cache para asegurar datos frescos
             const response = await fetch(CATALOG_URL, { cache: "no-store" });
             const data = await response.text();
             const rows = data.split(/\r?\n/).filter(row => row.trim() !== "");
             
             catalogItems = rows.map(row => {
                 const cleanRow = row.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
-                // Regex para capturar el formato: Articulo - $123.45 usd
                 const match = cleanRow.match(/(.+)\s*-\s*\$(\d+\.?\d*)\s*usd/i);
                 if (match) return { desc: match[1].trim(), price: parseFloat(match[2]) };
                 return null;
@@ -150,9 +148,7 @@
             if (catalogItems.length > 0) {
                 document.getElementById('rate-display').innerText = `CATÁLOGO CARGADO (${catalogItems.length})`;
                 fetchExchangeRate();
-            } else {
-                throw new Error("CSV vacío o formato incorrecto");
-            }
+            } else { throw new Error("CSV vacío o formato incorrecto"); }
         } catch (e) {
             console.error(e);
             document.getElementById('rate-display').innerText = "ERROR EN CATÁLOGO";
@@ -195,7 +191,6 @@
     }
 
     function updateRateUI() { 
-        // El tipo de cambio NO se redondea para mantener precisión en el cálculo
         document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(4)} MXN`; 
         calculate(); 
     }
@@ -224,7 +219,6 @@
         });
 
         if(usd > 0) {
-            // El redondeo se aplica a los resultados finales en PESOS
             let mxn = usd * currentRate;
             let descInput = document.getElementById('calc-discount').value;
             let descMonto = Math.ceil(parseDiscount(descInput, mxn));
@@ -258,7 +252,7 @@
                     <div class="client-item">
                         <button style="position:absolute; top:15px; right:15px; background:none; border:none; color:#555; cursor:pointer" onclick="removeOrderCard('${cid}', ${pIdx})">×</button>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-                            <div onclick="openOverlay('${cid}')">
+                            <div onclick="openOverlay('${cid}', ${pIdx})">
                                 <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:#fff">${c.nombre}</div>
                                 <div style="font-size:10px; color:var(--text-dim)">Pedido: ${p.fecha}</div>
                             </div>
@@ -275,50 +269,56 @@
         });
     });
 
-    function openOverlay(id) {
+    function openOverlay(id, idx) {
         activeOverlayId = id;
-        document.querySelector('.close-overlay').insertAdjacentHTML('beforebegin', `<button class="close-overlay" style="right:190px; background:var(--accent); color:#000" onclick="window.open('https://app.soloenvios.com/es-MX/users/sign_in','_blank')">ENVIAR</button>`);
-         document.getElementById('overlay-content').style.marginTop = "40px";
+        activeOrderIdx = idx;
+
+        const existingBtn = document.getElementById('btn-envio-portales');
+        if(existingBtn) existingBtn.remove();
+        
+        document.querySelector('.close-overlay').insertAdjacentHTML('beforebegin', `<button id="btn-envio-portales" class="close-overlay" style="right:190px; background:var(--accent); color:#000" onclick="window.open('https://app.soloenvios.com/es-MX/users/sign_in','_blank')">ENVIAR</button>`);
+        document.getElementById('overlay-content').style.marginTop = "40px";
         
         const c = clientesGlobal[id];
+        const p = c.pedidos[idx];
+        
         let html = `
             <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR: ${c.nombre}</div>
             <input type="text" id="edit-c-nom" class="input-box" style="background:#f0f0f0; color:#111" value="${c.nombre}">
             <input type="text" id="edit-c-tel" class="input-box" style="background:#f0f0f0; color:#111" value="${c.tel}">
             <input type="email" id="edit-c-mail" class="input-box" style="background:#f0f0f0; color:#111" value="${c.email || ''}">
             <textarea id="edit-c-dir" class="input-box" style="background:#f0f0f0; color:#111; min-height:60px">${c.direccion || ''}</textarea>
-            <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE DEL PEDIDO</div>
+            <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE DEL PEDIDO (${p.fecha})</div>
             <div id="items-edit-single" style="margin-top:15px">`;
 
-        if(c.pedidos && c.pedidos.length > 0) {
-            const p = c.pedidos[c.pedidos.length - 1];
-            p.items.forEach(it => {
-                html += `<div class="edit-row">
-                    <div style="flex:2; position:relative;"><input type="text" class="it-n" value="${it.nom}" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div>
-                    <input type="number" class="it-q" value="${it.cant}" style="width:45px" oninput="overlayRecalc()">
-                    <input type="number" class="it-p" value="${it.prec}" style="width:60px" oninput="overlayRecalc()">
-                    <button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>
-                </div>`;
-            });
-            html += `</div>
-                <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay('items-edit-single')">+ AÑADIR PRODUCTO</button>
-                <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
-                    <label class="label" style="color:#666">DESCUENTO</label>
-                    <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
-                    <label class="label" style="color:#666">ENVÍO MXN</label>
-                    <input type="number" id="edit-ship-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.env}" oninput="overlayRecalc()">
-                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:10px"><span>Anticipo:</span> <b id="d-ade-single">$${p.ade}</b></div>
-                    <div style="display:flex; justify-content:space-between; font-size:13px"><span>Saldo:</span> <b id="d-sal-single">$${p.sal}</b></div>
-                    <div style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px" id="total-idx-single">TOTAL: $${p.tot} MXN</div>
-                </div>`;
-        }
+        p.items.forEach(it => {
+            html += `<div class="edit-row">
+                <div style="flex:2; position:relative;"><input type="text" class="it-n" value="${it.nom}" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div>
+                <input type="number" class="it-q" value="${it.cant}" style="width:45px" oninput="overlayRecalc()">
+                <input type="number" class="it-p" value="${it.prec}" style="width:60px" oninput="overlayRecalc()">
+                <button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>
+            </div>`;
+        });
+        
+        html += `</div>
+            <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay('items-edit-single')">+ AÑADIR PRODUCTO</button>
+            <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
+                <label class="label" style="color:#666">DESCUENTO</label>
+                <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
+                <label class="label" style="color:#666">ENVÍO MXN</label>
+                <input type="number" id="edit-ship-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.env}" oninput="overlayRecalc()">
+                <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:10px"><span>Anticipo:</span> <b id="d-ade-single">$${p.ade}</b></div>
+                <div style="display:flex; justify-content:space-between; font-size:13px"><span>Saldo:</span> <b id="d-sal-single">$${p.sal}</b></div>
+                <div style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px" id="total-idx-single">TOTAL: $${p.tot} MXN</div>
+            </div>`;
+
         document.getElementById('overlay-content').innerHTML = html;
         document.getElementById('overlay').style.display = 'block';
     }
 
     function overlayRecalc() {
         const c = clientesGlobal[activeOverlayId];
-        const p = c.pedidos[c.pedidos.length - 1];
+        const p = c.pedidos[activeOrderIdx];
         let usd = 0;
         const rows = document.querySelectorAll('#items-edit-single .edit-row');
         p.items = [];
