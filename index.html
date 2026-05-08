@@ -417,7 +417,47 @@
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById('items-edit-single').appendChild(div);
     }
+    // --- FUNCIONES DE ACCIÓN Y WHATSAPP ---
 
+    function sendWA() {
+        const cli = clipData[selectedClientId];
+        if(!cli) return alert("Selecciona un cliente");
+        let msg = `*FALLEN MINIS - COTIZACIÓN*\n\n`;
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            if(n) msg += `• ${q}x ${n}\n`;
+        });
+        msg += `\n*Anticipo (60%):* $${lastCalc.ade} MXN\n`;
+        msg += `*Saldo (40%):* $${lastCalc.sal} MXN\n`;
+        msg += `*Envío:* $${lastCalc.ship} MXN\n`;
+        if(lastCalc.descMonto > 0) msg += `*Descuento:* -$${lastCalc.descMonto} MXN\n`;
+        msg += `\n*TOTAL:* $${lastCalc.tot} MXN`;
+
+        const fTel = cli.tel.replace(/\D/g, '');
+        window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function sendCobranza(cid, idx) {
+        const cli = clipData[cid];
+        const p = cli.pedidos[idx];
+        let msg = `*RECORDATORIO DE PAGO - FALLEN MINIS*\n\n`;
+        msg += `Hola *${cli.nombre}*, te comparto el estado de tu pedido:\n\n`;
+        
+        if(!p.pagA) msg += `• *Anticipo Pendiente:* $${p.ade} MXN\n`;
+        if(!p.pagS) msg += `• *Saldo Pendiente:* $${p.sal} MXN\n`;
+        if(!p.pagE) msg += `• *Envío Pendiente:* $${p.env} MXN\n`;
+        
+        msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_Favor de enviar comprobante por este medio._`;
+
+        const fTel = cli.tel.replace(/\D/g, '');
+        window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // Estas funciones ya estaban enlazadas en los botones:
+    // saveClient() -> Guarda el cliente nuevo en Firebase
+    // saveOrder()  -> Registra el pedido calculado en la base de datos
+  
     fetchCatalog();
 </script>
 </body>
