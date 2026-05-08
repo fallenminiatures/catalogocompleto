@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIS - Management</title>
+    <title>FALLEN MINIATURES - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -101,7 +101,7 @@
                     <div id="r-text" style="font-size:11px; color:#bbb"></div>
                     <div id="r-tot" style="font-size:20px; font-weight:900; color:#fff; margin-top:5px"></div>
                 </div>
-                <button class="wa-btn" onclick="sendWA()">ENVIAR WA</button>
+                <button class="wa-btn" onclick="sendWA()">ENVIAR</button>
                 <button class="nav-btn" style="width:100%; margin-top:10px; border:1px solid var(--accent); color:var(--accent)" onclick="saveOrder()">REGISTRAR EN BASE</button>
             </div>
         </div>
@@ -262,7 +262,7 @@
                                 <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:#fff">${c.nombre}</div>
                                 <div style="font-size:10px; color:var(--text-dim)">Pedido: ${p.fecha}</div>
                             </div>
-                            <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer" onclick="sendCobranza('${cid}', ${pIdx})">COBRAR</button>
+                            <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:10px;" onclick="sendCobranza('${cid}', ${pIdx})">COBRAR</button>
                         </div>
                         <div style="display:flex; gap:5px;">
                             <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${cid}',${pIdx},'pagA',${p.pagA})">ANT. $${p.ade}</div>
@@ -301,7 +301,7 @@
                 </div>`;
             });
             html += `</div>
-                <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay('items-edit-single')">+ ITEM</button>
+                <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay('items-edit-single')">+ AÑADIR PRODUCTO</button>
                 <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
                     <label class="label" style="color:#666">DESCUENTO</label>
                     <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
@@ -354,14 +354,14 @@
         const c = clientesGlobal[selectedClientId];
         if(!c) return alert("Selecciona un cliente");
         let dM = lastCalc.descMonto > 0 ? `\n*Descuento:* -$${lastCalc.descMonto} MXN` : "";
-        const msg = `*COTIZACIÓN FALLEN MINIS*\n-----------------------\n*Anticipo (60%):* $${lastCalc.ade} MXN\n*Saldo (40%):* $${lastCalc.sal} MXN${dM}\n*Envío:* $${lastCalc.ship} MXN\n-----------------------\n*TOTAL:* $${lastCalc.tot} MXN`;
+        const msg = `*Cotización Fallen Miniatures*\n-----------------------\n*Anticipo (60%):* $${lastCalc.ade} MXN\n*Saldo (40%):* $${lastCalc.sal} MXN${dM}\n*Envío:* $${lastCalc.ship} MXN\n-----------------------\n*TOTAL:* $${lastCalc.tot} MXN`;
         window.open(`https://wa.me/52${c.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
     function sendCobranza(cid, idx) {
         const c = clientesGlobal[cid], p = c.pedidos[idx];
         let t = (p.pagA?0:p.ade) + (p.pagS?0:p.sal) + (p.pagE?0:p.env);
-        const msg = `*Recordstorio de pago*\nHola ${c.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
+        const msg = `*Recordatorio de pago*\nHola ${c.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
         window.open(`https://wa.me/52${c.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
