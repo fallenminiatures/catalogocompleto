@@ -50,9 +50,6 @@
         .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
-        
-        /* Ajuste para el buscador */
-        #search-results div:hover { background: #333; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -122,7 +119,6 @@
 </div>
 
 <script>
-    // Variables de Estado
     const CATALOG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrUSvEa7fBbwChq6ycG3JUGUGVzQ1AQbYCDV1PsOlilKy5X-px_PkuIiHTl5IZ76xQ1khOP_9MKlKR/pub?gid=751903595&single=true&output=csv';
     const firebaseConfig = {
         apiKey: "AIzaSyDUYD_gMxeemWt-dfJrPtN8njzmV7HoJ48",
@@ -135,7 +131,7 @@
 
     let currentRate = 18.00, pedidosGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = "", baseClientesData = {};
 
-    // 1. Funciones de Carga (Catálogo y Divisa)
+    // 1. Catálogo y Tipo de Cambio
     async function fetchCatalog() {
         try {
             const response = await fetch(CATALOG_URL, { cache: "no-store" });
@@ -147,7 +143,6 @@
                 if (match) return { desc: match[1].trim(), price: parseFloat(match[2]) };
                 return null;
             }).filter(item => item !== null);
-            document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(2)}`;
             fetchExchangeRate();
         } catch (e) { document.getElementById('rate-display').innerText = "ERROR CATÁLOGO"; }
     }
@@ -170,7 +165,7 @@
         if(n){ currentRate = parseFloat(n); updateRateUI(); } 
     }
 
-    // 2. Lógica de Negocio (Redondeos y Descuentos)
+    // 2. Lógica de Redondeo (Math.ceil para ir al entero superior)
     function parseDiscount(val, subtotal) {
         if (!val) return 0;
         let sVal = val.toString().trim();
@@ -208,7 +203,7 @@
         }
     }
 
-    // 3. Gestión de Datos (Ruta única por pedido)
+    // 3. Sincronización Real con Firebase
     db.ref('pedidos_v4').on('value', snap => {
         pedidosGlobal = snap.val() || {};
         const list = document.getElementById('client-list'); 
@@ -255,21 +250,17 @@
         });
     }
 
-    // 4. Funciones del Overlay
+    // 4. Edición Avanzada (Overlay)
     function openOverlay(id) {
         activeCardId = id;
         const p = pedidosGlobal[id];
-        
-        const existingBtn = document.getElementById('btn-envio-portales');
-        if(existingBtn) existingBtn.remove();
-        document.querySelector('.close-overlay').insertAdjacentHTML('beforebegin', `<button id="btn-envio-portales" class="close-overlay" style="right:190px; background:var(--accent); color:#000" onclick="window.open('https://app.soloenvios.com/es-MX/users/sign_in','_blank')">ENVIAR</button>`);
         
         let html = `
             <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR PEDIDO: ${p.nombre}</div>
             <input type="text" id="edit-c-nom" class="input-box" style="background:#f0f0f0; color:#111" value="${p.nombre}">
             <input type="text" id="edit-c-tel" class="input-box" style="background:#f0f0f0; color:#111" value="${p.tel}">
-            <input type="email" id="edit-c-mail" class="input-box" style="background:#f0f0f0; color:#111" value="${p.email || ''}">
             <textarea id="edit-c-dir" class="input-box" style="background:#f0f0f0; color:#111; min-height:60px">${p.direccion || ''}</textarea>
+            
             <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE PRODUCTOS</div>
             <div id="items-edit-single" style="margin-top:15px">`;
 
@@ -283,7 +274,7 @@
         });
         
         html += `</div>
-            <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay('items-edit-single')">+ AÑADIR PRODUCTO</button>
+            <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay('items-edit-single')">+ PRODUCTO</button>
             <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
                 <label class="label" style="color:#666">DESCUENTO</label>
                 <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
@@ -324,14 +315,13 @@
         const p = pedidosGlobal[activeCardId];
         p.nombre = document.getElementById('edit-c-nom').value;
         p.tel = document.getElementById('edit-c-tel').value;
-        p.email = document.getElementById('edit-c-mail').value;
         p.direccion = document.getElementById('edit-c-dir').value;
         db.ref(`pedidos_v4/${activeCardId}`).set(p);
         document.getElementById('overlay').style.display = 'none';
         activeCardId = "";
     }
 
-    // 5. Interfaz y Buscadores
+    // 5. Auxiliares
     function filterClients() {
         const val = document.getElementById('search-input').value.toLowerCase();
         const res = document.getElementById('search-results'); 
@@ -340,8 +330,8 @@
         Object.keys(baseClientesData).forEach(id => {
             if(baseClientesData[id].nombre.toLowerCase().includes(val)) {
                 const d = document.createElement('div'); 
-                d.style.padding="12px"; d.style.color="#fff"; d.style.fontSize="12px"; 
-                d.style.borderBottom="1px solid #222";
+                d.style.padding="12px"; d.style.color="#fff"; d.style.fontSize="11px"; 
+                d.style.borderBottom="1px solid #222"; d.style.cursor="pointer";
                 d.innerText=baseClientesData[id].nombre;
                 d.onclick=()=>{ 
                     selectedClientId=id; 
@@ -405,20 +395,24 @@
     }
 
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
+    
     function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.getElementById('b-'+t).classList.add('active');
         ['calc','new','list'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
     }
+
     function addItemTab(id) {
         const div = document.createElement('div'); div.className = 'item-row edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
         document.getElementById(id).appendChild(div);
     }
+
     function addItemOverlay(id) {
         const div = document.createElement('div'); div.className = 'edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById(id).appendChild(div);
     }
+
     function updatePay(id, field, val) { db.ref(`pedidos_v4/${id}/${field}`).set(!val); }
     function removeCard(id) { if(confirm("¿Borrar esta tarjeta de pedido?")) { db.ref(`pedidos_v4/${id}`).remove(); } }
 
