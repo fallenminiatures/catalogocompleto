@@ -50,6 +50,8 @@
         .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+        
+        /* Ajuste para el buscador */
         #search-results div:hover { background: #333; cursor: pointer; }
     </style>
 </head>
@@ -63,7 +65,7 @@
 <div class="wrapper">
     <div class="card">
         <h2>FALLEN <span style="color:var(--accent)">MINIATURES</span></h2>
-        <div class="rate-info" id="rate-display" onclick="updateManualRate()">Sincronizando Catálogo...</div>
+        <div class="rate-info" id="rate-display" onclick="updateManualRate()">Sincronizando...</div>
         
         <div class="nav-tabs">
             <button class="nav-btn active" id="b-calc" onclick="showTab('calc')">Cotizar</button>
@@ -73,7 +75,7 @@
 
         <div id="tab-calc">
             <input type="text" id="search-input" class="input-box" placeholder="Buscar cliente..." oninput="filterClients()" autocomplete="off">
-            <div id="search-results" style="position:relative; background:#1f1f1f; display:none; border-radius:12px; margin-bottom:10px; max-height:150px; overflow-y:auto; z-index:100; border: 1px solid #333;"></div>
+            <div id="search-results" style="position:relative; background:#1f1f1f; display:none; border-radius:12px; margin-bottom:10px; max-height:150px; overflow-y:auto; z-index:100; border:1px solid #333"></div>
             
             <div id="items-container">
                 <div class="item-row edit-row">
@@ -120,8 +122,8 @@
 </div>
 
 <script>
+    // Variables de Estado
     const CATALOG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrUSvEa7fBbwChq6ycG3JUGUGVzQ1AQbYCDV1PsOlilKy5X-px_PkuIiHTl5IZ76xQ1khOP_9MKlKR/pub?gid=751903595&single=true&output=csv';
-
     const firebaseConfig = {
         apiKey: "AIzaSyDUYD_gMxeemWt-dfJrPtN8njzmV7HoJ48",
         authDomain: "fallen-cotizador.firebaseapp.com",
@@ -133,6 +135,7 @@
 
     let currentRate = 18.00, pedidosGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = "", baseClientesData = {};
 
+    // 1. Funciones de Carga (Catálogo y Divisa)
     async function fetchCatalog() {
         try {
             const response = await fetch(CATALOG_URL, { cache: "no-store" });
@@ -144,37 +147,9 @@
                 if (match) return { desc: match[1].trim(), price: parseFloat(match[2]) };
                 return null;
             }).filter(item => item !== null);
-            if (catalogItems.length > 0) {
-                document.getElementById('rate-display').innerText = `CATÁLOGO CARGADO (${catalogItems.length})`;
-                fetchExchangeRate();
-            }
-        } catch (e) { document.getElementById('rate-display').innerText = "ERROR EN CATÁLOGO"; }
-    }
-
-    function searchCatalog(input) {
-        const val = input.value.toLowerCase();
-        const resultsDiv = input.nextElementSibling;
-        resultsDiv.innerHTML = "";
-        if (val.length < 3) { resultsDiv.style.display = "none"; return; }
-        const matches = catalogItems.filter(i => i.desc.toLowerCase().includes(val)).slice(0, 10);
-        if (matches.length > 0) {
-            matches.forEach(m => {
-                const d = document.createElement('div');
-                d.className = 'catalog-option';
-                d.innerText = `${m.desc} ($${m.price} USD)`;
-                d.onclick = () => {
-                    input.value = m.desc;
-                    const row = input.closest('.edit-row');
-                    const priceInp = row.querySelector('.item-price') || row.querySelector('.it-p');
-                    if (priceInp) priceInp.value = m.price;
-                    resultsDiv.style.display = "none";
-                    calculate();
-                    if (activeCardId) overlayRecalc();
-                };
-                resultsDiv.appendChild(d);
-            });
-            resultsDiv.style.display = "block";
-        }
+            document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(2)}`;
+            fetchExchangeRate();
+        } catch (e) { document.getElementById('rate-display').innerText = "ERROR CATÁLOGO"; }
     }
 
     async function fetchExchangeRate() {
@@ -186,7 +161,7 @@
     }
 
     function updateRateUI() { 
-        document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(4)} MXN`; 
+        document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(2)} MXN`; 
         calculate(); 
     }
 
@@ -195,6 +170,7 @@
         if(n){ currentRate = parseFloat(n); updateRateUI(); } 
     }
 
+    // 2. Lógica de Negocio (Redondeos y Descuentos)
     function parseDiscount(val, subtotal) {
         if (!val) return 0;
         let sVal = val.toString().trim();
@@ -232,7 +208,7 @@
         }
     }
 
-    // ESCUCHA DE DATOS: Aseguramos que lea pedidos_v4
+    // 3. Gestión de Datos (Ruta única por pedido)
     db.ref('pedidos_v4').on('value', snap => {
         pedidosGlobal = snap.val() || {};
         const list = document.getElementById('client-list'); 
@@ -260,6 +236,26 @@
 
     db.ref('base_clientes').on('value', snap => { baseClientesData = snap.val() || {}; });
 
+    function saveOrder() {
+        if(!selectedClientId) return alert("Selecciona un cliente");
+        let items = [];
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            items.push({ nom: r.querySelector('.item-name').value, cant: r.querySelector('.item-qty').value, prec: r.querySelector('.item-price').value });
+        });
+        const bc = baseClientesData[selectedClientId];
+        const newOrder = {
+            nombre: bc.nombre, tel: bc.tel, email: bc.email || "", direccion: bc.direccion || "",
+            fecha: new Date().toLocaleDateString(), ...lastCalc, env: lastCalc.ship,
+            items: items, pagA: false, pagS: false, pagE: false
+        };
+        db.ref('pedidos_v4').push(newOrder).then(() => {
+            showTab('list');
+            document.getElementById('search-input').value = "";
+            selectedClientId = "";
+        });
+    }
+
+    // 4. Funciones del Overlay
     function openOverlay(id) {
         activeCardId = id;
         const p = pedidosGlobal[id];
@@ -274,7 +270,7 @@
             <input type="text" id="edit-c-tel" class="input-box" style="background:#f0f0f0; color:#111" value="${p.tel}">
             <input type="email" id="edit-c-mail" class="input-box" style="background:#f0f0f0; color:#111" value="${p.email || ''}">
             <textarea id="edit-c-dir" class="input-box" style="background:#f0f0f0; color:#111; min-height:60px">${p.direccion || ''}</textarea>
-            <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE DEL PRODUCTO</div>
+            <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE PRODUCTOS</div>
             <div id="items-edit-single" style="margin-top:15px">`;
 
         p.items.forEach(it => {
@@ -335,40 +331,7 @@
         activeCardId = "";
     }
 
-    function saveOrder() {
-        if(!selectedClientId) return alert("Selecciona un cliente");
-        let items = [];
-        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
-            items.push({ nom: r.querySelector('.item-name').value, cant: r.querySelector('.item-qty').value, prec: r.querySelector('.item-price').value });
-        });
-        const baseClient = baseClientesData[selectedClientId];
-        const newOrder = {
-            nombre: baseClient.nombre,
-            tel: baseClient.tel,
-            email: baseClient.email || "",
-            direccion: baseClient.direccion || "",
-            fecha: new Date().toLocaleDateString(),
-            ...lastCalc,
-            env: lastCalc.ship,
-            items: items,
-            pagA: false, pagS: false, pagE: false
-        };
-        db.ref('pedidos_v4').push(newOrder).then(() => {
-            showTab('list');
-            document.getElementById('search-input').value = "";
-            selectedClientId = "";
-        });
-    }
-
-    function saveClient() {
-        const n = document.getElementById('c-nom').value, t = document.getElementById('c-tel').value, m = document.getElementById('c-mail').value, d = document.getElementById('c-dir').value;
-        if(!n || !t) return alert("Nombre y Tel obligatorios");
-        db.ref('base_clientes').push({ nombre: n, tel: t, email: m, direccion: d });
-        alert("Cliente Guardado"); 
-        document.getElementById('c-nom').value = ""; document.getElementById('c-tel').value = "";
-        showTab('calc');
-    }
-
+    // 5. Interfaz y Buscadores
     function filterClients() {
         const val = document.getElementById('search-input').value.toLowerCase();
         const res = document.getElementById('search-results'); 
@@ -377,14 +340,13 @@
         Object.keys(baseClientesData).forEach(id => {
             if(baseClientesData[id].nombre.toLowerCase().includes(val)) {
                 const d = document.createElement('div'); 
-                d.style.padding="12px"; d.style.color="#fff"; d.style.fontSize="13px"; 
+                d.style.padding="12px"; d.style.color="#fff"; d.style.fontSize="12px"; 
                 d.style.borderBottom="1px solid #222";
                 d.innerText=baseClientesData[id].nombre;
                 d.onclick=()=>{ 
                     selectedClientId=id; 
                     document.getElementById('search-input').value=baseClientesData[id].nombre; 
-                    res.style.display='none'; 
-                    calculate(); 
+                    res.style.display='none'; calculate(); 
                 };
                 res.appendChild(d);
             }
@@ -392,8 +354,33 @@
         res.style.display='block';
     }
 
+    function searchCatalog(input) {
+        const val = input.value.toLowerCase();
+        const resultsDiv = input.nextElementSibling;
+        resultsDiv.innerHTML = "";
+        if (val.length < 3) { resultsDiv.style.display = "none"; return; }
+        const matches = catalogItems.filter(i => i.desc.toLowerCase().includes(val)).slice(0, 10);
+        if (matches.length > 0) {
+            matches.forEach(m => {
+                const d = document.createElement('div');
+                d.className = 'catalog-option';
+                d.innerText = `${m.desc} ($${m.price} USD)`;
+                d.onclick = () => {
+                    input.value = m.desc;
+                    const row = input.closest('.edit-row');
+                    const priceInp = row.querySelector('.item-price') || row.querySelector('.it-p');
+                    if (priceInp) priceInp.value = m.price;
+                    resultsDiv.style.display = "none";
+                    calculate();
+                    if (activeCardId) overlayRecalc();
+                };
+                resultsDiv.appendChild(d);
+            });
+            resultsDiv.style.display = "block";
+        }
+    }
+
     function sendWA() {
-        const n = document.getElementById('search-input').value;
         const tel = baseClientesData[selectedClientId]?.tel;
         if(!tel) return alert("Selecciona un cliente");
         let dM = lastCalc.descMonto > 0 ? `\n*Descuento:* -$${lastCalc.descMonto} MXN` : "";
@@ -408,6 +395,15 @@
         window.open(`https://wa.me/52${p.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
+    function saveClient() {
+        const n = document.getElementById('c-nom').value, t = document.getElementById('c-tel').value, m = document.getElementById('c-mail').value, d = document.getElementById('c-dir').value;
+        if(!n || !t) return alert("Nombre y Tel obligatorios");
+        db.ref('base_clientes').push({ nombre: n, tel: t, email: m, direccion: d });
+        alert("Cliente Guardado");
+        document.getElementById('c-nom').value=""; document.getElementById('c-tel').value="";
+        showTab('calc');
+    }
+
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
     function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.getElementById('b-'+t).classList.add('active');
@@ -415,12 +411,12 @@
     }
     function addItemTab(id) {
         const div = document.createElement('div'); div.className = 'item-row edit-row';
-        div.innerHTML = `<div style=\"flex:2; position:relative;\"><input type=\"text\" class=\"item-name input-box\" placeholder=\"Producto...\" style=\"margin:0; width:100%\" oninput=\"searchCatalog(this)\"><div class=\"catalog-results\"></div></div><input type=\"number\" class=\"item-qty input-box\" value=\"1\" style=\"width:60px; margin:0\" oninput=\"calculate()\"><input type=\"number\" class=\"item-price input-box\" placeholder=\"USD\" style=\"width:80px; margin:0\" oninput=\"calculate()\">`;
+        div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
         document.getElementById(id).appendChild(div);
     }
     function addItemOverlay(id) {
         const div = document.createElement('div'); div.className = 'edit-row';
-        div.innerHTML = `<div style=\"flex:2; position:relative;\"><input type=\"text\" class=\"it-n\" placeholder=\"Prod\" oninput=\"searchCatalog(this); overlayRecalc()\"><div class=\"catalog-results\"></div></div><input type=\"number\" class=\"it-q\" value=\"1\" style=\"width:45px\" oninput=\"overlayRecalc()\"><input type=\"number\" class=\"it-p\" placeholder=\"USD\" style=\"width:60px\" oninput=\"overlayRecalc()\"><button class=\"btn-del\" onclick=\"this.parentElement.remove(); overlayRecalc()\">X</button>`;
+        div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById(id).appendChild(div);
     }
     function updatePay(id, field, val) { db.ref(`pedidos_v4/${id}/${field}`).set(!val); }
