@@ -278,7 +278,8 @@
     function openOverlay(id) {
         activeOverlayId = id;
         document.querySelector('.close-overlay').insertAdjacentHTML('beforebegin', `<button class="close-overlay" style="right:190px; background:var(--accent); color:#000" onclick="window.open('https://app.soloenvios.com/es-MX/users/sign_in','_blank')">ENVIAR</button>`);
-
+         document.getElementById('overlay-content').style.marginTop = "40px";
+        
         const c = clientesGlobal[id];
         let html = `
             <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR: ${c.nombre}</div>
