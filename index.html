@@ -50,6 +50,7 @@
         .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+        #search-results div:hover { background: #333; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -71,8 +72,8 @@
         </div>
 
         <div id="tab-calc">
-            <input type="text" id="search-input" class="input-box" placeholder="Buscar cliente..." oninput="filterClients()">
-            <div id="search-results" style="position:relative; background:#1f1f1f; display:none; border-radius:12px; margin-bottom:10px; max-height:150px; overflow-y:auto; z-index:100;"></div>
+            <input type="text" id="search-input" class="input-box" placeholder="Buscar cliente..." oninput="filterClients()" autocomplete="off">
+            <div id="search-results" style="position:relative; background:#1f1f1f; display:none; border-radius:12px; margin-bottom:10px; max-height:150px; overflow-y:auto; z-index:100; border: 1px solid #333;"></div>
             
             <div id="items-container">
                 <div class="item-row edit-row">
@@ -130,7 +131,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentRate = 18.00, clientesGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = "";
+    let currentRate = 18.00, pedidosGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = "", baseClientesData = {};
 
     async function fetchCatalog() {
         try {
@@ -231,22 +232,22 @@
         }
     }
 
-    // LISTADO: Ahora cada registro de la DB es una tarjeta independiente
+    // ESCUCHA DE DATOS: Aseguramos que lea pedidos_v4
     db.ref('pedidos_v4').on('value', snap => {
-        const data = snap.val() || {};
+        pedidosGlobal = snap.val() || {};
         const list = document.getElementById('client-list'); 
         list.innerHTML = "";
-        Object.keys(data).reverse().forEach(id => {
-            const p = data[id];
+        Object.keys(pedidosGlobal).reverse().forEach(id => {
+            const p = pedidosGlobal[id];
             list.innerHTML += `
             <div class="client-item">
                 <button style="position:absolute; top:15px; right:15px; background:none; border:none; color:#555; cursor:pointer" onclick="removeCard('${id}')">×</button>
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-                    <div onclick="openOverlay('${id}')">
+                    <div onclick="openOverlay('${id}')" style="cursor:pointer; flex:1">
                         <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:#fff">${p.nombre}</div>
                         <div style="font-size:10px; color:var(--text-dim)">Pedido: ${p.fecha}</div>
                     </div>
-                    <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:10px;" onclick="sendCobranza('${id}')">COBRAR</button>
+                    <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:5px;" onclick="sendCobranza('${id}')">COBRAR</button>
                 </div>
                 <div style="display:flex; gap:5px;">
                     <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${id}','pagA',${p.pagA})">ANT. $${p.ade}</div>
@@ -255,18 +256,18 @@
                 </div>
             </div>`;
         });
-        clientesGlobal = data; 
     });
+
+    db.ref('base_clientes').on('value', snap => { baseClientesData = snap.val() || {}; });
 
     function openOverlay(id) {
         activeCardId = id;
-        const p = clientesGlobal[id];
+        const p = pedidosGlobal[id];
         
         const existingBtn = document.getElementById('btn-envio-portales');
         if(existingBtn) existingBtn.remove();
         document.querySelector('.close-overlay').insertAdjacentHTML('beforebegin', `<button id="btn-envio-portales" class="close-overlay" style="right:190px; background:var(--accent); color:#000" onclick="window.open('https://app.soloenvios.com/es-MX/users/sign_in','_blank')">ENVIAR</button>`);
-        document.getElementById('overlay-content').style.marginTop = "40px";
-
+        
         let html = `
             <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR PEDIDO: ${p.nombre}</div>
             <input type="text" id="edit-c-nom" class="input-box" style="background:#f0f0f0; color:#111" value="${p.nombre}">
@@ -301,7 +302,7 @@
     }
 
     function overlayRecalc() {
-        const p = clientesGlobal[activeCardId];
+        const p = pedidosGlobal[activeCardId];
         let usd = 0;
         const rows = document.querySelectorAll('#items-edit-single .edit-row');
         p.items = [];
@@ -324,7 +325,7 @@
 
     function closeOverlay() {
         overlayRecalc();
-        const p = clientesGlobal[activeCardId];
+        const p = pedidosGlobal[activeCardId];
         p.nombre = document.getElementById('edit-c-nom').value;
         p.tel = document.getElementById('edit-c-tel').value;
         p.email = document.getElementById('edit-c-mail').value;
@@ -340,7 +341,6 @@
         document.querySelectorAll('#tab-calc .item-row').forEach(r => {
             items.push({ nom: r.querySelector('.item-name').value, cant: r.querySelector('.item-qty').value, prec: r.querySelector('.item-price').value });
         });
-        // IMPORTANTE: Buscamos los datos base del cliente pero creamos un REGISTRO ÚNICO de pedido
         const baseClient = baseClientesData[selectedClientId];
         const newOrder = {
             nombre: baseClient.nombre,
@@ -353,29 +353,39 @@
             items: items,
             pagA: false, pagS: false, pagE: false
         };
-        // Guardamos como una entrada nueva e independiente
-        db.ref('pedidos_v4').push(newOrder).then(() => showTab('list'));
+        db.ref('pedidos_v4').push(newOrder).then(() => {
+            showTab('list');
+            document.getElementById('search-input').value = "";
+            selectedClientId = "";
+        });
     }
-
-    // Buscador de clientes (ahora solo para extraer datos base)
-    let baseClientesData = {};
-    db.ref('base_clientes').on('value', snap => { baseClientesData = snap.val() || {}; });
 
     function saveClient() {
         const n = document.getElementById('c-nom').value, t = document.getElementById('c-tel').value, m = document.getElementById('c-mail').value, d = document.getElementById('c-dir').value;
         if(!n || !t) return alert("Nombre y Tel obligatorios");
         db.ref('base_clientes').push({ nombre: n, tel: t, email: m, direccion: d });
-        alert("Cliente Guardado"); showTab('calc');
+        alert("Cliente Guardado"); 
+        document.getElementById('c-nom').value = ""; document.getElementById('c-tel').value = "";
+        showTab('calc');
     }
 
     function filterClients() {
         const val = document.getElementById('search-input').value.toLowerCase();
-        const res = document.getElementById('search-results'); res.innerHTML = "";
+        const res = document.getElementById('search-results'); 
+        res.innerHTML = "";
         if(!val) { res.style.display='none'; return; }
         Object.keys(baseClientesData).forEach(id => {
             if(baseClientesData[id].nombre.toLowerCase().includes(val)) {
-                const d = document.createElement('div'); d.style.padding="10px"; d.style.color="#fff"; d.style.fontSize="11px"; d.innerText=baseClientesData[id].nombre;
-                d.onclick=()=>{ selectedClientId=id; document.getElementById('search-input').value=baseClientesData[id].nombre; res.style.display='none'; calculate(); };
+                const d = document.createElement('div'); 
+                d.style.padding="12px"; d.style.color="#fff"; d.style.fontSize="13px"; 
+                d.style.borderBottom="1px solid #222";
+                d.innerText=baseClientesData[id].nombre;
+                d.onclick=()=>{ 
+                    selectedClientId=id; 
+                    document.getElementById('search-input').value=baseClientesData[id].nombre; 
+                    res.style.display='none'; 
+                    calculate(); 
+                };
                 res.appendChild(d);
             }
         });
@@ -392,7 +402,7 @@
     }
 
     function sendCobranza(id) {
-        const p = clientesGlobal[id];
+        const p = pedidosGlobal[id];
         let t = (p.pagA?0:p.ade) + (p.pagS?0:p.sal) + (p.pagE?0:p.env);
         const msg = `*Recordatorio de pago*\nHola ${p.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
         window.open(`https://wa.me/52${p.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
@@ -405,12 +415,12 @@
     }
     function addItemTab(id) {
         const div = document.createElement('div'); div.className = 'item-row edit-row';
-        div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
+        div.innerHTML = `<div style=\"flex:2; position:relative;\"><input type=\"text\" class=\"item-name input-box\" placeholder=\"Producto...\" style=\"margin:0; width:100%\" oninput=\"searchCatalog(this)\"><div class=\"catalog-results\"></div></div><input type=\"number\" class=\"item-qty input-box\" value=\"1\" style=\"width:60px; margin:0\" oninput=\"calculate()\"><input type=\"number\" class=\"item-price input-box\" placeholder=\"USD\" style=\"width:80px; margin:0\" oninput=\"calculate()\">`;
         document.getElementById(id).appendChild(div);
     }
     function addItemOverlay(id) {
         const div = document.createElement('div'); div.className = 'edit-row';
-        div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
+        div.innerHTML = `<div style=\"flex:2; position:relative;\"><input type=\"text\" class=\"it-n\" placeholder=\"Prod\" oninput=\"searchCatalog(this); overlayRecalc()\"><div class=\"catalog-results\"></div></div><input type=\"number\" class=\"it-q\" value=\"1\" style=\"width:45px\" oninput=\"overlayRecalc()\"><input type=\"number\" class=\"it-p\" placeholder=\"USD\" style=\"width:60px\" oninput=\"overlayRecalc()\"><button class=\"btn-del\" onclick=\"this.parentElement.remove(); overlayRecalc()\">X</button>`;
         document.getElementById(id).appendChild(div);
     }
     function updatePay(id, field, val) { db.ref(`pedidos_v4/${id}/${field}`).set(!val); }
