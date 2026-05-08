@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIATURED - Management</title>
+    <title>FALLEN MINIS - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -130,29 +130,24 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentRate = 18.00, clientesGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeOverlayId = "", activeOrderIdx = null;
+    let currentRate = 18.00, clientesGlobal = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = "";
 
     async function fetchCatalog() {
         try {
             const response = await fetch(CATALOG_URL, { cache: "no-store" });
             const data = await response.text();
             const rows = data.split(/\r?\n/).filter(row => row.trim() !== "");
-            
             catalogItems = rows.map(row => {
                 const cleanRow = row.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
                 const match = cleanRow.match(/(.+)\s*-\s*\$(\d+\.?\d*)\s*usd/i);
                 if (match) return { desc: match[1].trim(), price: parseFloat(match[2]) };
                 return null;
             }).filter(item => item !== null);
-            
             if (catalogItems.length > 0) {
                 document.getElementById('rate-display').innerText = `CATÁLOGO CARGADO (${catalogItems.length})`;
                 fetchExchangeRate();
-            } else { throw new Error("CSV vacío o formato incorrecto"); }
-        } catch (e) {
-            console.error(e);
-            document.getElementById('rate-display').innerText = "ERROR EN CATÁLOGO";
-        }
+            }
+        } catch (e) { document.getElementById('rate-display').innerText = "ERROR EN CATÁLOGO"; }
     }
 
     function searchCatalog(input) {
@@ -160,7 +155,6 @@
         const resultsDiv = input.nextElementSibling;
         resultsDiv.innerHTML = "";
         if (val.length < 3) { resultsDiv.style.display = "none"; return; }
-
         const matches = catalogItems.filter(i => i.desc.toLowerCase().includes(val)).slice(0, 10);
         if (matches.length > 0) {
             matches.forEach(m => {
@@ -174,12 +168,12 @@
                     if (priceInp) priceInp.value = m.price;
                     resultsDiv.style.display = "none";
                     calculate();
-                    if (activeOverlayId) overlayRecalc();
+                    if (activeCardId) overlayRecalc();
                 };
                 resultsDiv.appendChild(d);
             });
             resultsDiv.style.display = "block";
-        } else { resultsDiv.style.display = "none"; }
+        }
     }
 
     async function fetchExchangeRate() {
@@ -217,13 +211,11 @@
             const p = parseFloat(r.querySelector('.item-price').value) || 0;
             usd += q * p;
         });
-
         if(usd > 0) {
             let mxn = usd * currentRate;
             let descInput = document.getElementById('calc-discount').value;
             let descMonto = Math.ceil(parseDiscount(descInput, mxn));
             let mxnConDesc = mxn - descMonto;
-            
             lastCalc = { 
                 ade: Math.ceil(mxnConDesc * 0.6), 
                 sal: Math.ceil(mxnConDesc * 0.4), 
@@ -232,7 +224,6 @@
                 descMonto: descMonto, 
                 tot: Math.ceil(mxnConDesc) + currentShip 
             };
-
             document.getElementById('r-text').innerHTML = `60% Ant: $${lastCalc.ade} | 40% Sal: $${lastCalc.sal} | Env: $${currentShip}`;
             if(descMonto > 0) document.getElementById('r-text').innerHTML += ` | Desc: -$${descMonto}`;
             document.getElementById('r-tot').innerText = `TOTAL: $${lastCalc.tot} MXN`;
@@ -240,55 +231,49 @@
         }
     }
 
-    db.ref('clientes_v3').on('value', snap => {
-        clientesGlobal = snap.val() || {};
+    // LISTADO: Ahora cada registro de la DB es una tarjeta independiente
+    db.ref('pedidos_v4').on('value', snap => {
+        const data = snap.val() || {};
         const list = document.getElementById('client-list'); 
         list.innerHTML = "";
-        Object.keys(clientesGlobal).reverse().forEach(cid => {
-            const c = clientesGlobal[cid];
-            if(c.pedidos) {
-                c.pedidos.forEach((p, pIdx) => {
-                    list.innerHTML += `
-                    <div class="client-item">
-                        <button style="position:absolute; top:15px; right:15px; background:none; border:none; color:#555; cursor:pointer" onclick="removeOrderCard('${cid}', ${pIdx})">×</button>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-                            <div onclick="openOverlay('${cid}', ${pIdx})">
-                                <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:#fff">${c.nombre}</div>
-                                <div style="font-size:10px; color:var(--text-dim)">Pedido: ${p.fecha}</div>
-                            </div>
-                            <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:10px;" onclick="sendCobranza('${cid}', ${pIdx})">COBRAR</button>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${cid}',${pIdx},'pagA',${p.pagA})">ANT. $${p.ade}</div>
-                            <div class="status-badge ${p.pagS?'status-paid':''}" onclick="updatePay('${cid}',${pIdx},'pagS',${p.pagS})">SAL. $${p.sal}</div>
-                            <div class="status-badge ${p.pagE?'status-paid':''}" onclick="updatePay('${cid}',${pIdx},'pagE',${p.pagE})">ENV. $${p.env}</div>
-                        </div>
-                    </div>`;
-                });
-            }
+        Object.keys(data).reverse().forEach(id => {
+            const p = data[id];
+            list.innerHTML += `
+            <div class="client-item">
+                <button style="position:absolute; top:15px; right:15px; background:none; border:none; color:#555; cursor:pointer" onclick="removeCard('${id}')">×</button>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                    <div onclick="openOverlay('${id}')">
+                        <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:#fff">${p.nombre}</div>
+                        <div style="font-size:10px; color:var(--text-dim)">Pedido: ${p.fecha}</div>
+                    </div>
+                    <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:10px;" onclick="sendCobranza('${id}')">COBRAR</button>
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${id}','pagA',${p.pagA})">ANT. $${p.ade}</div>
+                    <div class="status-badge ${p.pagS?'status-paid':''}" onclick="updatePay('${id}','pagS',${p.pagS})">SAL. $${p.sal}</div>
+                    <div class="status-badge ${p.pagE?'status-paid':''}" onclick="updatePay('${id}','pagE',${p.pagE})">ENV. $${p.env}</div>
+                </div>
+            </div>`;
         });
+        clientesGlobal = data; 
     });
 
-    function openOverlay(id, idx) {
-        activeOverlayId = id;
-        activeOrderIdx = idx;
-
+    function openOverlay(id) {
+        activeCardId = id;
+        const p = clientesGlobal[id];
+        
         const existingBtn = document.getElementById('btn-envio-portales');
         if(existingBtn) existingBtn.remove();
-        
         document.querySelector('.close-overlay').insertAdjacentHTML('beforebegin', `<button id="btn-envio-portales" class="close-overlay" style="right:190px; background:var(--accent); color:#000" onclick="window.open('https://app.soloenvios.com/es-MX/users/sign_in','_blank')">ENVIAR</button>`);
         document.getElementById('overlay-content').style.marginTop = "40px";
-        
-        const c = clientesGlobal[id];
-        const p = c.pedidos[idx];
-        
+
         let html = `
-            <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR: ${c.nombre}</div>
-            <input type="text" id="edit-c-nom" class="input-box" style="background:#f0f0f0; color:#111" value="${c.nombre}">
-            <input type="text" id="edit-c-tel" class="input-box" style="background:#f0f0f0; color:#111" value="${c.tel}">
-            <input type="email" id="edit-c-mail" class="input-box" style="background:#f0f0f0; color:#111" value="${c.email || ''}">
-            <textarea id="edit-c-dir" class="input-box" style="background:#f0f0f0; color:#111; min-height:60px">${c.direccion || ''}</textarea>
-            <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE DEL PEDIDO (${p.fecha})</div>
+            <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR PEDIDO: ${p.nombre}</div>
+            <input type="text" id="edit-c-nom" class="input-box" style="background:#f0f0f0; color:#111" value="${p.nombre}">
+            <input type="text" id="edit-c-tel" class="input-box" style="background:#f0f0f0; color:#111" value="${p.tel}">
+            <input type="email" id="edit-c-mail" class="input-box" style="background:#f0f0f0; color:#111" value="${p.email || ''}">
+            <textarea id="edit-c-dir" class="input-box" style="background:#f0f0f0; color:#111; min-height:60px">${p.direccion || ''}</textarea>
+            <div style="font-weight:900; margin-top:20px; border-bottom:1px solid #ddd; padding-bottom:10px">DETALLE DEL PRODUCTO</div>
             <div id="items-edit-single" style="margin-top:15px">`;
 
         p.items.forEach(it => {
@@ -311,14 +296,12 @@
                 <div style="display:flex; justify-content:space-between; font-size:13px"><span>Saldo:</span> <b id="d-sal-single">$${p.sal}</b></div>
                 <div style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px" id="total-idx-single">TOTAL: $${p.tot} MXN</div>
             </div>`;
-
         document.getElementById('overlay-content').innerHTML = html;
         document.getElementById('overlay').style.display = 'block';
     }
 
     function overlayRecalc() {
-        const c = clientesGlobal[activeOverlayId];
-        const p = c.pedidos[activeOrderIdx];
+        const p = clientesGlobal[activeCardId];
         let usd = 0;
         const rows = document.querySelectorAll('#items-edit-single .edit-row');
         p.items = [];
@@ -341,28 +324,14 @@
 
     function closeOverlay() {
         overlayRecalc();
-        const c = clientesGlobal[activeOverlayId];
-        c.nombre = document.getElementById('edit-c-nom').value;
-        c.tel = document.getElementById('edit-c-tel').value;
-        c.email = document.getElementById('edit-c-mail').value;
-        c.direccion = document.getElementById('edit-c-dir').value;
-        db.ref(`clientes_v3/${activeOverlayId}`).set(c);
+        const p = clientesGlobal[activeCardId];
+        p.nombre = document.getElementById('edit-c-nom').value;
+        p.tel = document.getElementById('edit-c-tel').value;
+        p.email = document.getElementById('edit-c-mail').value;
+        p.direccion = document.getElementById('edit-c-dir').value;
+        db.ref(`pedidos_v4/${activeCardId}`).set(p);
         document.getElementById('overlay').style.display = 'none';
-    }
-
-    function sendWA() {
-        const c = clientesGlobal[selectedClientId];
-        if(!c) return alert("Selecciona un cliente");
-        let dM = lastCalc.descMonto > 0 ? `\n*Descuento:* -$${lastCalc.descMonto} MXN` : "";
-        const msg = `*Cotización Fallen Miniatures*\n-----------------------\n*Anticipo (60%):* $${lastCalc.ade} MXN\n*Saldo (40%):* $${lastCalc.sal} MXN${dM}\n*Envío:* $${lastCalc.ship} MXN\n-----------------------\n*TOTAL:* $${lastCalc.tot} MXN`;
-        window.open(`https://wa.me/52${c.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
-    }
-
-    function sendCobranza(cid, idx) {
-        const c = clientesGlobal[cid], p = c.pedidos[idx];
-        let t = (p.pagA?0:p.ade) + (p.pagS?0:p.sal) + (p.pagE?0:p.env);
-        const msg = `*Recordatorio de pago*\nHola ${c.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
-        window.open(`https://wa.me/52${c.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
+        activeCardId = "";
     }
 
     function saveOrder() {
@@ -371,16 +340,31 @@
         document.querySelectorAll('#tab-calc .item-row').forEach(r => {
             items.push({ nom: r.querySelector('.item-name').value, cant: r.querySelector('.item-qty').value, prec: r.querySelector('.item-price').value });
         });
-        let c = clientesGlobal[selectedClientId];
-        if(!c.pedidos) c.pedidos = [];
-        c.pedidos.push({ fecha: new Date().toLocaleDateString(), ...lastCalc, env: lastCalc.ship, items, pagA: false, pagS: false, pagE: false });
-        db.ref(`clientes_v3/${selectedClientId}`).set(c).then(() => showTab('list'));
+        // IMPORTANTE: Buscamos los datos base del cliente pero creamos un REGISTRO ÚNICO de pedido
+        const baseClient = baseClientesData[selectedClientId];
+        const newOrder = {
+            nombre: baseClient.nombre,
+            tel: baseClient.tel,
+            email: baseClient.email || "",
+            direccion: baseClient.direccion || "",
+            fecha: new Date().toLocaleDateString(),
+            ...lastCalc,
+            env: lastCalc.ship,
+            items: items,
+            pagA: false, pagS: false, pagE: false
+        };
+        // Guardamos como una entrada nueva e independiente
+        db.ref('pedidos_v4').push(newOrder).then(() => showTab('list'));
     }
+
+    // Buscador de clientes (ahora solo para extraer datos base)
+    let baseClientesData = {};
+    db.ref('base_clientes').on('value', snap => { baseClientesData = snap.val() || {}; });
 
     function saveClient() {
         const n = document.getElementById('c-nom').value, t = document.getElementById('c-tel').value, m = document.getElementById('c-mail').value, d = document.getElementById('c-dir').value;
         if(!n || !t) return alert("Nombre y Tel obligatorios");
-        db.ref('clientes_v3').push({ nombre: n, tel: t, email: m, direccion: d, pedidos: [] });
+        db.ref('base_clientes').push({ nombre: n, tel: t, email: m, direccion: d });
         alert("Cliente Guardado"); showTab('calc');
     }
 
@@ -388,14 +372,30 @@
         const val = document.getElementById('search-input').value.toLowerCase();
         const res = document.getElementById('search-results'); res.innerHTML = "";
         if(!val) { res.style.display='none'; return; }
-        Object.keys(clientesGlobal).forEach(id => {
-            if(clientesGlobal[id].nombre.toLowerCase().includes(val)) {
-                const d = document.createElement('div'); d.style.padding="10px"; d.style.color="#fff"; d.style.fontSize="11px"; d.innerText=clientesGlobal[id].nombre;
-                d.onclick=()=>{ selectedClientId=id; document.getElementById('search-input').value=clientesGlobal[id].nombre; res.style.display='none'; calculate(); };
+        Object.keys(baseClientesData).forEach(id => {
+            if(baseClientesData[id].nombre.toLowerCase().includes(val)) {
+                const d = document.createElement('div'); d.style.padding="10px"; d.style.color="#fff"; d.style.fontSize="11px"; d.innerText=baseClientesData[id].nombre;
+                d.onclick=()=>{ selectedClientId=id; document.getElementById('search-input').value=baseClientesData[id].nombre; res.style.display='none'; calculate(); };
                 res.appendChild(d);
             }
         });
         res.style.display='block';
+    }
+
+    function sendWA() {
+        const n = document.getElementById('search-input').value;
+        const tel = baseClientesData[selectedClientId]?.tel;
+        if(!tel) return alert("Selecciona un cliente");
+        let dM = lastCalc.descMonto > 0 ? `\n*Descuento:* -$${lastCalc.descMonto} MXN` : "";
+        const msg = `*Cotización Fallen Miniatures*\n-----------------------\n*Anticipo (60%):* $${lastCalc.ade} MXN\n*Saldo (40%):* $${lastCalc.sal} MXN${dM}\n*Envío:* $${lastCalc.ship} MXN\n-----------------------\n*TOTAL:* $${lastCalc.tot} MXN`;
+        window.open(`https://wa.me/52${tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
+    }
+
+    function sendCobranza(id) {
+        const p = clientesGlobal[id];
+        let t = (p.pagA?0:p.ade) + (p.pagS?0:p.sal) + (p.pagE?0:p.env);
+        const msg = `*Recordatorio de pago*\nHola ${p.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
+        window.open(`https://wa.me/52${p.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
@@ -413,8 +413,8 @@
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById(id).appendChild(div);
     }
-    function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
-    function removeOrderCard(cid, idx) { if(confirm("¿Quitar tarjeta?")) { clientesGlobal[cid].pedidos.splice(idx,1); db.ref(`clientes_v3/${cid}`).set(clientesGlobal[cid]); } }
+    function updatePay(id, field, val) { db.ref(`pedidos_v4/${id}/${field}`).set(!val); }
+    function removeCard(id) { if(confirm("¿Borrar esta tarjeta de pedido?")) { db.ref(`pedidos_v4/${id}`).remove(); } }
 
     fetchCatalog();
 </script>
