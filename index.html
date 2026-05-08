@@ -233,24 +233,42 @@
         });
     });
 
-    function saveOrder() {
+     async function saveOrder() {
         if(!selectedClientId) return alert("Selecciona un cliente");
-        let items = [];
+        
+        let itemsStr = "";
         document.querySelectorAll('#tab-calc .item-row').forEach(r => {
-            items.push({ nom: r.querySelector('.item-name').value, cant: r.querySelector('.item-qty').value, prec: r.querySelector('.item-price').value });
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            if(n) itemsStr += `${q}x ${n}, `;
         });
+
         const cli = clipData[selectedClientId];
-        if(!cli.pedidos) cli.pedidos = [];
-        cli.pedidos.push({
-            fecha: new Date().toLocaleDateString(), ...lastCalc, env: lastCalc.ship,
-            items: items, pagA: false, pagS: false, pagE: false
-        });
-        db.ref(`clientes_v3/${selectedClientId}`).set(cli).then(() => {
+        const datos = {
+            id: "ORD-" + Date.now(),
+            nombre: cli.nombre,
+            whatsapp: cli.tel,
+            descripcion: itemsStr,
+            costo: lastCalc.tot,
+            notas: `Anticipo: ${lastCalc.ade} | Saldo: ${lastCalc.sal} | Envío: ${lastCalc.ship}`
+        };
+
+        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+
+        try {
+            await fetch(urlWebApp, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+            alert("¡Pedido registrado en Google Sheets!");
             showTab('list');
-            document.getElementById('search-input').value = "";
-            selectedClientId = "";
-        });
+        } catch (error) {
+            alert("Error al registrar pedido");
+        }
     }
+
 
     // 4. Overlay y Edición
         function openOverlay(cid, idx) {
@@ -420,12 +438,39 @@
         }
     }
 
-    function saveClient() {
-        const n = document.getElementById('c-nom').value, t = document.getElementById('c-tel').value;
+        async function saveClient() {
+        const n = document.getElementById('c-nom').value;
+        const t = document.getElementById('c-tel').value;
+        const m = document.getElementById('c-mail').value;
+        const d = document.getElementById('c-dir').value;
+
         if(!n || !t) return alert("Nombre y Tel obligatorios");
-        db.ref('clientes_v3').push({ nombre: n, tel: t, email: document.getElementById('c-mail').value, direccion: document.getElementById('c-dir').value });
-        alert("Cliente Guardado");
-        showTab('calc');
+
+        const datos = {
+            id: "CLI-" + Date.now(),
+            nombre: n,
+            whatsapp: t,
+            email: m,
+            direccion: d,
+            descripcion: "REGISTRO DE CLIENTE NUEVO",
+            costo: 0,
+            notas: "Cliente creado desde la pestaña Nuevo"
+        };
+
+        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+
+        try {
+            await fetch(urlWebApp, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+            alert("Cliente Guardado en Google Sheets");
+            showTab('calc');
+        } catch (error) {
+            alert("Error al guardar en Sheets");
+        }
     }
 
     function showTab(t) { 
