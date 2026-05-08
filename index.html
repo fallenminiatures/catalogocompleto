@@ -220,7 +220,7 @@
                                 <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:#fff">${cli.nombre}</div>
                                 <div style="font-size:10px; color:var(--text-dim)">Fecha: ${p.fecha}</div>
                             </div>
-                            <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:5px;" onclick="sendCobranza('${cid}', ${idx})">COBRAR</button>
+                            <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:10px; margin-right:25px;" onclick="sendCobranza('${cid}', ${idx})">COBRAR</button>
                         </div>
                         <div style="display:flex; gap:5px;">
                             <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagA',${p.pagA})">ANT. $${p.ade}</div>
@@ -422,7 +422,7 @@
     function sendWA() {
         const cli = clipData[selectedClientId];
         if(!cli) return alert("Selecciona un cliente");
-        let msg = `*FALLEN MINIS - COTIZACIÓN*\n\n`;
+        let msg = `*FALLEN MINIATURES - COTIZACIÓN*\n\n`;
         document.querySelectorAll('#tab-calc .item-row').forEach(r => {
             const n = r.querySelector('.item-name').value;
             const q = r.querySelector('.item-qty').value;
@@ -441,14 +441,14 @@
     function sendCobranza(cid, idx) {
         const cli = clipData[cid];
         const p = cli.pedidos[idx];
-        let msg = `*RECORDATORIO DE PAGO - FALLEN MINIS*\n\n`;
+        let msg = `*RECORDATORIO DE PAGO - FALLEN MINIATURES*\n\n`;
         msg += `Hola *${cli.nombre}*, te comparto el estado de tu pedido:\n\n`;
         
         if(!p.pagA) msg += `• *Anticipo Pendiente:* $${p.ade} MXN\n`;
         if(!p.pagS) msg += `• *Saldo Pendiente:* $${p.sal} MXN\n`;
         if(!p.pagE) msg += `• *Envío Pendiente:* $${p.env} MXN\n`;
         
-        msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_Favor de enviar comprobante por este medio._`;
+        msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_Gracias._`;
 
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
