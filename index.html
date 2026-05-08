@@ -253,11 +253,25 @@
     }
 
     // 4. Overlay y Edición
-    function openOverlay(cid, idx) {
+        function openOverlay(cid, idx) {
         activeCardId = {cid, idx};
-        const p = clipData[cid].pedidos[idx];
+        const cli = clipData[cid];
+        const p = cli.pedidos[idx];
+        
         let html = `
-            <div style="font-weight:900; margin-bottom:20px; font-size:18px">EDITAR PEDIDO: ${clipData[cid].nombre}</div>
+            <div style="font-weight:900; margin-bottom:10px; font-size:18px">EDITAR PEDIDO: ${cli.nombre}</div>
+            
+            <div style="margin-bottom:20px; padding:15px; background:#f0f0f0; border-radius:15px;">
+                <label class="label" style="color:#666">WHATSAPP</label>
+                <input type="text" id="edit-cli-tel" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.tel || ''}">
+                
+                <label class="label" style="color:#666">E-MAIL</label>
+                <input type="email" id="edit-cli-mail" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.email || ''}">
+                
+                <label class="label" style="color:#666">DIRECCIÓN</label>
+                <textarea id="edit-cli-dir" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:60px; resize:none">${cli.direccion || ''}</textarea>
+            </div>
+
             <div id="items-edit-single">`;
 
         p.items.forEach(it => {
@@ -271,6 +285,7 @@
         
         html += `</div>
             <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay()">+ PRODUCTO</button>
+            
             <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
                 <div style="display:flex; gap:10px">
                     <div style="flex:1">
@@ -286,6 +301,10 @@
                 <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
                 <label class="label" style="color:#666">ENVÍO MXN</label>
                 <input type="number" id="edit-ship-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.env}" oninput="overlayRecalc()">
+                
+                <label class="label" style="color:#666; margin-top:10px">NOTAS DEL PEDIDO</label>
+                <textarea id="edit-p-notas" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:80px; resize:none" placeholder="Notas sobre el trabajo o cliente...">${p.notas || ''}</textarea>
+                
                 <div id="total-idx-single" style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px">TOTAL: $${p.tot} MXN</div>
             </div>`;
         document.getElementById('overlay-content').innerHTML = html;
@@ -333,10 +352,20 @@
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
     }
 
-    function closeOverlay() {
+        function closeOverlay() {
         if(activeCardId){
             const {cid, idx} = activeCardId;
-            db.ref(`clientes_v3/${cid}/pedidos/${idx}`).set(clipData[cid].pedidos[idx]);
+            
+            // Actualizamos los datos generales del cliente
+            clipData[cid].tel = document.getElementById('edit-cli-tel').value;
+            clipData[cid].email = document.getElementById('edit-cli-mail').value;
+            clipData[cid].direccion = document.getElementById('edit-cli-dir').value;
+            
+            // Guardamos las notas específicas de este pedido
+            clipData[cid].pedidos[idx].notas = document.getElementById('edit-p-notas').value;
+
+            // Subimos el objeto completo a Firebase
+            db.ref(`clientes_v3/${cid}`).set(clipData[cid]);
         }
         document.getElementById('overlay').style.display = 'none';
         activeCardId = null;
