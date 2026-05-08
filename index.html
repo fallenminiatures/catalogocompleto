@@ -282,7 +282,7 @@
         document.getElementById('overlay').style.display = 'block';
     }
 
-    function overlayRecalc() {
+        function overlayRecalc() {
         const {cid, idx} = activeCardId;
         const p = clipData[cid].pedidos[idx];
         let usd = 0;
@@ -293,14 +293,38 @@
             usd += (q * pr);
             p.items.push({ nom: r.querySelector('.it-n').value, cant: q, prec: pr });
         });
+        
         const ship = parseFloat(document.getElementById('edit-ship-single').value) || 0;
         const dIn = document.getElementById('edit-desc-single').value;
         let mxn = usd * currentRate;
         let dM = Math.ceil(parseDiscount(dIn, mxn));
         let mxnD = mxn - dM;
-        p.ade = Math.ceil(mxnD * 0.6); p.sal = Math.ceil(mxnD * 0.4); p.env = ship; p.descVal = dIn; p.descMonto = dM; p.tot = Math.ceil(mxnD) + ship;
+
+        // Cálculo de valores
+        p.ade = Math.ceil(mxnD * 0.6); 
+        p.sal = Math.ceil(mxnD * 0.4); 
+        p.env = ship; 
+        p.descVal = dIn; 
+        p.descMonto = dM; 
+        p.tot = Math.ceil(mxnD) + ship;
+
+        // Actualizar los inputs en pantalla
+        document.getElementById('edit-ade-single').value = p.ade;
+        document.getElementById('edit-sal-single').value = p.sal;
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
     }
+
+    // Por si quieres editar el dinero a mano sin cambiar los productos
+    function syncManualMoney() {
+        const {cid, idx} = activeCardId;
+        const p = clipData[cid].pedidos[idx];
+        p.ade = parseFloat(document.getElementById('edit-ade-single').value) || 0;
+        p.sal = parseFloat(document.getElementById('edit-sal-single').value) || 0;
+        p.env = parseFloat(document.getElementById('edit-ship-single').value) || 0;
+        p.tot = p.ade + p.sal + p.env;
+        document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
+    }
+
 
     function closeOverlay() {
         const {cid, idx} = activeCardId;
