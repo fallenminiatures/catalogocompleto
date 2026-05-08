@@ -61,7 +61,7 @@
 
 <div class="wrapper">
     <div class="card">
-        <h2>FALLEN <span style="color:var(--accent)">MINIS</span></h2>
+        <h2>FALLEN <span style="color:var(--accent)">MINIATURES</span></h2>
         <div class="rate-info" id="rate-display" onclick="updateManualRate()">Sincronizando Catálogo...</div>
         
         <div class="nav-tabs">
@@ -358,7 +358,7 @@
     function sendCobranza(cid, idx) {
         const c = clientesGlobal[cid], p = c.pedidos[idx];
         let t = (p.pagA?0:p.ade) + (p.pagS?0:p.sal) + (p.pagE?0:p.env);
-        const msg = `*RECORDATORIO DE PAGO*\nHola ${c.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
+        const msg = `*Recordstorio de pago*\nHola ${c.nombre}, el pendiente de tu pedido es de *$${t} MXN*.`;
         window.open(`https://wa.me/52${c.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
