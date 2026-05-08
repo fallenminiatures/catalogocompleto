@@ -464,40 +464,59 @@
     }
 
         async function saveClient() {
-        const n = document.getElementById('c-nom').value;
-        const t = document.getElementById('c-tel').value;
-        const m = document.getElementById('c-mail').value;
-        const d = document.getElementById('c-dir').value;
+    const n = document.getElementById('c-nom').value;
+    const t = document.getElementById('c-tel').value;
+    const m = document.getElementById('c-mail').value;
+    const d = document.getElementById('c-dir').value;
 
-        if(!n || !t) return alert("Nombre y Tel obligatorios");
+    if(!n || !t) return alert("Nombre y Tel obligatorios");
 
-        const datos = {
-            id: "CLI-" + Date.now(),
-            nombre: n,
-            whatsapp: t,
-            email: m,
+    // 1. Preparamos los datos para Google Sheets
+    const datosSheets = {
+        id: "CLI-" + Date.now(),
+        nombre: n,
+        whatsapp: t,
+        email: m,
+        direccion: d,
+        descripcion: "REGISTRO DE CLIENTE NUEVO",
+        costo: 0,
+        notas: "Cliente creado desde la pestaña Nuevo"
+    };
+
+    const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+
+    try {
+        // 2. GUARDAR EN GOOGLE SHEETS (Respaldo y Administración)
+        fetch(urlWebApp, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datosSheets)
+        });
+
+        // 3. GUARDAR EN FIREBASE (Para que el buscador de la app lo encuentre)
+        // Usamos .push() para que Firebase genere un ID único automáticamente
+        await db.ref('clientes_v3').push({ 
+            nombre: n, 
+            tel: t, 
+            email: m, 
             direccion: d,
-            descripcion: "REGISTRO DE CLIENTE NUEVO",
-            costo: 0,
-            notas: "Cliente creado desde la pestaña Nuevo"
-        };
+            pedidos: [] // Inicializamos la lista de pedidos vacía
+        });
 
-        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+        alert("¡Cliente guardado con éxito! Ya puedes buscarlo para cotizar.");
+        
+        // Limpiamos los campos y regresamos a la pestaña de cotizar
+        document.getElementById('c-nom').value = "";
+        document.getElementById('c-tel').value = "";
+        document.getElementById('c-mail').value = "";
+        document.getElementById('c-dir').value = "";
+        showTab('calc');
 
-        try {
-            await fetch(urlWebApp, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(datos)
-            });
-            alert("Cliente Guardado en Google Sheets");
-            showTab('calc');
-        } catch (error) {
-            alert("Error al guardar en Sheets");
-        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Hubo un error al guardar el cliente.");
     }
-
     function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.getElementById('b-'+t).classList.add('active');
         ['calc','new','list'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
