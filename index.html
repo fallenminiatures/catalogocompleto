@@ -1,12 +1,13 @@
-                          <!DOCTYPE html>
+                            <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIATURES - Management</title>
+    <title>FALLEN MINIS - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     
     <style>
         :root {
@@ -66,6 +67,43 @@
             --ship-border: #dde1e7;
         }
 
+        /* ── FIREBASE LOGIN SCREEN ── */
+        #fb-login-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #0a0a0a;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .fb-login-box { width: 100%; max-width: 360px; text-align: center; }
+        .fb-login-title {
+            font-family: var(--font-title); font-size: 32px; font-weight: 900;
+            color: #e0e0e0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: -0.02em;
+        }
+        .fb-login-title span { color: var(--accent); }
+        .fb-login-sub { font-size: 12px; color: #555; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .fb-login-card {
+            background: #141414; border: 1px solid #222; border-radius: 20px; padding: 26px 22px;
+        }
+        .fb-inp {
+            width: 100%; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 12px;
+            padding: 13px 14px; color: #fff; font-size: 14px; outline: none;
+            font-family: var(--font-main); margin-bottom: 12px; box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        .fb-inp:focus { border-color: var(--accent); }
+        .fb-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: var(--accent); color: #000; font-family: var(--font-title);
+            font-size: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+            transition: opacity 0.2s; margin-top: 4px;
+        }
+        .fb-btn:hover { opacity: 0.88; }
+        .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .fb-err { font-size: 12px; color: #ff6b6b; min-height: 18px; margin-top: 8px; text-align: center; }
+        .fb-eye {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-60%);
+            background: none; border: none; color: #555; cursor: pointer; font-size: 16px; padding: 0;
+        }
+
         /* ── TOGGLE BUTTON ── */
         .theme-toggle {
             position: fixed;
@@ -123,11 +161,32 @@
 </head>
 <body>
 
+<!-- ═══ FIREBASE LOGIN ═══ -->
+<div id="fb-login-screen">
+  <div class="fb-login-box">
+    <div class="fb-login-title">FALLEN <span>MINIATURES</span></div>
+    <div class="fb-login-sub">Management System</div>
+    <div class="fb-login-card">
+      <input class="fb-inp" id="fb-email" type="email" placeholder="Correo electrónico"
+        autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('fb-pass').focus()"/>
+      <div style="position:relative">
+        <input class="fb-inp" id="fb-pass" type="password" placeholder="Contraseña"
+          autocomplete="current-password" style="padding-right:42px;margin-bottom:0"
+          onkeydown="if(event.key==='Enter')fbLogin()"/>
+        <button class="fb-eye" onclick="fbTogglePass()" type="button" id="fb-eye-btn">👁</button>
+      </div>
+      <div class="fb-err" id="fb-err"></div>
+      <button class="fb-btn" id="fb-btn" onclick="fbLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <div id="overlay">
     <button class="close-overlay" onclick="closeOverlay()">CERRAR Y GUARDAR</button>
     <div id="overlay-content"></div>
 </div>
 
+<div id="main-app-wrapper" style="display:none;width:100%">
 <div class="wrapper">
     <div class="card">
         <h2>FALLEN <span style="color:var(--accent)">MINIATURES</span></h2>
@@ -197,8 +256,65 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
 
     let currentRate = 18.00, clipData = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = null;
+
+    // ── FIREBASE AUTH ────────────────────────────
+    function fbLogin(){
+      const email = document.getElementById('fb-email').value.trim();
+      const pass  = document.getElementById('fb-pass').value;
+      const err   = document.getElementById('fb-err');
+      const btn   = document.getElementById('fb-btn');
+      if(!email || !pass){ err.textContent = 'Ingresa correo y contraseña'; return; }
+      err.textContent = '';
+      btn.disabled = true; btn.textContent = 'Verificando...';
+      auth.signInWithEmailAndPassword(email, pass)
+        .catch(e => {
+          btn.disabled = false; btn.textContent = 'Entrar';
+          const msgs = {
+            'auth/user-not-found':    'Usuario no encontrado',
+            'auth/wrong-password':    'Contraseña incorrecta',
+            'auth/invalid-email':     'Correo inválido',
+            'auth/too-many-requests': 'Demasiados intentos, espera un momento',
+            'auth/invalid-credential':'Correo o contraseña incorrectos',
+          };
+          err.textContent = msgs[e.code] || 'Error al iniciar sesión';
+        });
+    }
+
+    function fbTogglePass(){
+      const inp = document.getElementById('fb-pass');
+      const eye = document.getElementById('fb-eye-btn');
+      if(inp.type === 'password'){ inp.type = 'text'; eye.textContent = '🙈'; }
+      else { inp.type = 'password'; eye.textContent = '👁'; }
+    }
+
+    function fbLogout(){
+      if(!confirm('¿Cerrar sesión?')) return;
+      auth.signOut();
+    }
+
+    // Observador de sesión — arranca la app solo cuando hay usuario autenticado
+    auth.onAuthStateChanged(user => {
+      if(user){
+        // Usuario autenticado — mostrar app
+        document.getElementById('fb-login-screen').style.display = 'none';
+        document.getElementById('main-app-wrapper').style.display = '';
+        // Mostrar email del usuario en el botón de logout
+        const badge = document.getElementById('user-email-badge');
+        if(badge) badge.textContent = user.email.split('@')[0];
+        // Arrancar la app
+        fetchCatalog();
+        applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+      } else {
+        // No autenticado — mostrar login
+        document.getElementById('fb-login-screen').style.display = 'flex';
+        document.getElementById('main-app-wrapper').style.display = 'none';
+        document.getElementById('fb-btn').disabled = false;
+        document.getElementById('fb-btn').textContent = 'Entrar';
+      }
+    });
 
     // 1. Catálogo y Tipo de Cambio
     async function fetchCatalog() {
@@ -611,7 +727,7 @@
     // saveClient() -> Guarda el cliente nuevo en Firebase
     // saveOrder()  -> Registra el pedido calculado en la base de datos
   
-    fetchCatalog();
+    // fetchCatalog() ahora es llamado por onAuthStateChanged tras login exitoso
 
     // ── THEME TOGGLE ──
     const THEME_KEY = 'fm_theme';
@@ -629,11 +745,20 @@
         const current = document.body.classList.contains('light') ? 'light' : 'dark';
         applyTheme(current === 'light' ? 'dark' : 'light');
     }
-    // Restaurar tema guardado
-    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+    // El tema se aplica en onAuthStateChanged al mostrar la app
 </script>
+
+<!-- Botón logout -->
+<button onclick="fbLogout()" title="Cerrar sesión"
+  style="position:fixed;bottom:24px;left:24px;z-index:999;background:var(--card-bg);
+         border:1px solid var(--border);border-radius:50px;padding:10px 16px;
+         font-size:11px;font-weight:700;font-family:var(--font-title);cursor:pointer;
+         color:var(--text-dim);box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.2s">
+  <span id="user-email-badge"></span> · SALIR
+</button>
 
 <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">☀️</button>
 
+</div><!-- /main-app-wrapper -->
 </body>
 </html>
