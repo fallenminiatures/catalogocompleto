@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+                          <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIS - Management</title>
+    <title>FALLEN MINIATURES - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -479,8 +479,10 @@
         Object.keys(clipData).forEach(id => {
             if(clipData[id].nombre.toLowerCase().includes(val)) {
                 const d = document.createElement('div'); 
-                d.style.padding="12px"; d.style.color="#fff"; d.style.fontSize="11px"; 
-                d.style.borderBottom="1px solid #222"; d.style.cursor="pointer";
+                d.style.padding="12px"; d.style.color="var(--text-main)"; d.style.fontSize="11px";
+                d.style.borderBottom="1px solid var(--search-border)"; d.style.cursor="pointer";
+                d.onmouseover=()=>d.style.background="var(--inp-bg)";
+                d.onmouseout=()=>d.style.background="";
                 d.innerText=clipData[id].nombre;
                 d.onclick=()=>{ 
                     selectedClientId=id; 
