@@ -1500,28 +1500,46 @@
     }
 
     function renderDashboard() {
-        // Recopilar todos los pedidos
+        // Recopilar pedidos SOLO de clientes con tarjetas en Base
         const allPedidos = [];
         const clienteTotales = {};
+        const clientesConTarjetas = new Set();
+
         Object.keys(clipData).forEach(cid => {
             const cli = clipData[cid];
-            if(!cli.pedidos) return;
+            if(!cli.pedidos || cli.pedidos.length === 0) return;
+            clientesConTarjetas.add(cid);
             cli.pedidos.forEach(p => {
                 allPedidos.push({ ...p, clienteNombre: cli.nombre, cid });
-                clienteTotales[cid] = (clienteTotales[cid] || 0) + (p.tot || 0);
+
+                // Ingresos reales = solo lo marcado como pagado en las tarjetas
+                let ingresoPedido = 0;
+                if(p.pagA) ingresoPedido += (p.ade || 0);
+                if(p.pagS) ingresoPedido += (p.sal || 0);
+                if(p.pagE) ingresoPedido += (p.env || 0);
+                clienteTotales[cid] = (clienteTotales[cid] || 0) + ingresoPedido;
             });
         });
 
-        const totalIngresos = allPedidos.reduce((a,p) => a+(p.tot||0), 0);
+        // Ingresos = suma de badges pagados en todas las tarjetas
+        const totalIngresos = allPedidos.reduce((a, p) => {
+            let ing = 0;
+            if(p.pagA) ing += (p.ade || 0);
+            if(p.pagS) ing += (p.sal || 0);
+            if(p.pagE) ing += (p.env || 0);
+            return a + ing;
+        }, 0);
+
         const totalGastos   = gastosData.reduce((a,g) => a+(g.monto||0), 0);
         const utilidad      = totalIngresos - totalGastos;
         const ticketProm    = allPedidos.length ? Math.round(totalIngresos / allPedidos.length) : 0;
-        const totalClientes = Object.keys(clipData).length;
+        // Clientes = solo los que tienen al menos una tarjeta en Base
+        const totalClientes = clientesConTarjetas.size;
 
-        // KPIs — ahora incluye gastos y utilidad
+        // KPIs
         const utilClass = utilidad >= 0 ? 'dash-utilidad-pos' : 'dash-utilidad-neg';
         document.getElementById('dash-kpis').innerHTML = `
-            <div class="dash-kpi"><div class="dash-kpi-val">$${(totalIngresos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Ingresos</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val">$${(totalIngresos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Cobrado</div></div>
             <div class="dash-kpi"><div class="dash-kpi-val" style="color:#ff4757">$${(totalGastos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Gastos</div></div>
             <div class="dash-kpi"><div class="dash-kpi-val ${utilClass}">$${(utilidad/1000).toFixed(1)}k</div><div class="dash-kpi-label">Utilidad</div></div>
             <div class="dash-kpi"><div class="dash-kpi-val">${totalClientes}</div><div class="dash-kpi-label">Clientes</div></div>`;
@@ -1530,14 +1548,18 @@
         const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
         const labelColor= isLight ? '#888' : '#555';
 
-        // Gráfica ingresos por mes
+        // Gráfica ingresos por mes (solo lo cobrado)
         const byMonth = {};
         allPedidos.forEach(p => {
             if(!p.fecha) return;
             const parts = p.fecha.split('/');
             if(parts.length < 3) return;
             const key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
-            byMonth[key] = (byMonth[key] || 0) + (p.tot || 0);
+            let ing = 0;
+            if(p.pagA) ing += (p.ade || 0);
+            if(p.pagS) ing += (p.sal || 0);
+            if(p.pagE) ing += (p.env || 0);
+            byMonth[key] = (byMonth[key] || 0) + ing;
         });
         const sortedMonths = Object.keys(byMonth).sort();
         const monthLabels = sortedMonths.map(k => { const [y,m] = k.split('-'); return ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)]+' '+y.slice(2); });
