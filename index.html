@@ -146,6 +146,121 @@
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
 
+
+        /* ── ALERTA ROJA ANTICIPO ── */
+        .client-item.alerta-anticipo {
+            border-left-color: #ff4757 !important;
+            background: rgba(255,71,87,0.06) !important;
+        }
+        .alerta-badge {
+            display:inline-flex; align-items:center; gap:5px;
+            background: rgba(255,71,87,0.15); color:#ff4757;
+            font-size:9px; font-weight:900; font-family:var(--font-title);
+            padding:4px 10px; border-radius:20px; text-transform:uppercase;
+            letter-spacing:0.05em; margin-bottom:10px;
+        }
+
+        /* ── ESTADO DEL PEDIDO ── */
+        .estado-btn {
+            font-size:9px; font-weight:800; font-family:var(--font-title);
+            padding:5px 10px; border-radius:20px; border:none; cursor:pointer;
+            text-transform:uppercase; letter-spacing:0.04em; transition:all 0.2s;
+        }
+        .estado-proceso { background:rgba(255,200,0,0.15); color:#f0b429; }
+        .estado-listo   { background:rgba(80,160,255,0.15); color:#50a0ff; }
+        .estado-enviado { background:rgba(37,211,102,0.15); color:#25D366; }
+
+        /* ── NOTAS RÁPIDAS ── */
+        .nota-rapida {
+            width:100%; background:var(--inp-bg); border:1px solid var(--inp-border);
+            border-radius:10px; padding:10px 12px; color:var(--inp-color);
+            font-size:12px; font-family:var(--font-main); resize:none;
+            min-height:60px; outline:none; transition:border 0.2s; margin-top:10px;
+        }
+        .nota-rapida:focus { border-color:var(--accent); }
+        .nota-label {
+            font-size:9px; font-weight:900; font-family:var(--font-title);
+            text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim);
+            margin-top:12px; display:block;
+        }
+
+        /* ── BÚSQUEDA GLOBAL ── */
+        #global-search-wrap {
+            position:relative; margin-bottom:14px;
+        }
+        #global-search {
+            width:100%; background:var(--inp-bg); border:1px solid var(--inp-border);
+            border-radius:12px; padding:12px 14px 12px 36px; color:var(--inp-color);
+            font-size:13px; font-family:var(--font-main); outline:none;
+            transition:border 0.2s;
+        }
+        #global-search:focus { border-color:var(--accent); }
+        .global-search-icon {
+            position:absolute; left:12px; top:50%; transform:translateY(-50%);
+            font-size:14px; pointer-events:none;
+        }
+        #global-results {
+            background:var(--card-bg); border:1px solid var(--border);
+            border-radius:14px; margin-top:6px; overflow:hidden;
+            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+        }
+        .gr-item {
+            padding:12px 16px; border-bottom:1px solid var(--border);
+            cursor:pointer; transition:background 0.15s;
+        }
+        .gr-item:last-child { border-bottom:none; }
+        .gr-item:hover { background:var(--inp-bg); }
+        .gr-item-name { font-size:13px; font-weight:700; font-family:var(--font-title); }
+        .gr-item-sub  { font-size:10px; color:var(--text-dim); margin-top:2px; }
+        .gr-tag {
+            font-size:8px; font-weight:800; font-family:var(--font-title);
+            padding:2px 7px; border-radius:10px; text-transform:uppercase;
+            background:rgba(37,211,102,0.15); color:var(--accent); margin-left:6px;
+        }
+
+        /* ── DASHBOARD ── */
+        .dash-kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+        .dash-kpi {
+            background:var(--client-bg); border:1px solid var(--border);
+            border-radius:16px; padding:16px; text-align:center;
+        }
+        .dash-kpi-val {
+            font-family:var(--font-title); font-size:20px; font-weight:900;
+            color:var(--accent); line-height:1;
+        }
+        .dash-kpi-label {
+            font-size:9px; color:var(--text-dim); text-transform:uppercase;
+            font-weight:700; font-family:var(--font-title); margin-top:4px;
+            letter-spacing:0.07em;
+        }
+        .dash-chart-wrap { position:relative; height:160px; margin-bottom:18px; }
+        .dash-section { font-family:var(--font-title); font-size:11px; font-weight:900;
+            text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim);
+            margin-bottom:10px; margin-top:18px; }
+        .dash-top-item {
+            display:flex; align-items:center; justify-content:space-between;
+            background:var(--client-bg); border:1px solid var(--border);
+            border-radius:12px; padding:12px 14px; margin-bottom:8px;
+        }
+        .dash-top-name { font-size:13px; font-weight:700; font-family:var(--font-title); }
+        .dash-top-val  { font-size:12px; font-weight:800; color:var(--accent); font-family:var(--font-title); }
+
+
+        /* ── GASTOS ── */
+        .gasto-item {
+            display:flex; align-items:center; justify-content:space-between; gap:10px;
+            background:var(--client-bg); border:1px solid var(--border);
+            border-left: 4px solid #ff4757;
+            border-radius:12px; padding:12px 14px; margin-bottom:8px;
+        }
+        .gasto-desc { font-size:13px; font-weight:600; flex:1; }
+        .gasto-monto { font-size:13px; font-weight:800; font-family:var(--font-title); color:#ff4757; white-space:nowrap; }
+        .gasto-fecha { font-size:10px; color:var(--text-dim); }
+        .gasto-del { background:none; border:none; color:#555; cursor:pointer; font-size:16px; padding:0 4px; flex-shrink:0; }
+        .dash-utilidad-pos { color: var(--accent); }
+        .dash-utilidad-neg { color: #ff4757; }
+        .dash-gastos-chart-wrap { position:relative; height:140px; margin-bottom:10px; }
+
         /* ── GRÁFICA DE TENDENCIA ── */
         .trend-wrap {
             margin-top: 14px;
@@ -269,11 +384,19 @@
         <h2>FALLEN <span style="color:var(--accent)">MINIATURES</span></h2>
         <div class="rate-info" id="rate-display" onclick="updateManualRate()">Sincronizando...</div>
         
+        <!-- BÚSQUEDA GLOBAL -->
+        <div id="global-search-wrap" style="display:none">
+            <span class="global-search-icon">🔍</span>
+            <input type="text" id="global-search" placeholder="Buscar cliente o pedido..." oninput="globalSearch(this.value)" autocomplete="off">
+            <div id="global-results" style="display:none"></div>
+        </div>
+
         <div class="nav-tabs">
             <button class="nav-btn active" id="b-calc" onclick="showTab('calc')">Cotizar</button>
             <button class="nav-btn" id="b-new" onclick="showTab('new')">Nuevo</button>
             <button class="nav-btn" id="b-list" onclick="showTab('list')">Base</button>
             <button class="nav-btn" id="b-dif" onclick="showTab('dif')">📢 Blast</button>
+            <button class="nav-btn" id="b-dash" onclick="showTab('dash')">📊</button>
         </div>
 
         <!-- TAB: COTIZAR -->
@@ -375,6 +498,42 @@
 
         </div>
         <!-- FIN TAB DIFUSIÓN ════════════════════════════════════ -->
+
+        <!-- TAB: DASHBOARD ══════════════════════════════════════ -->
+        <div id="tab-dash" style="display:none">
+
+            <!-- KPIs -->
+            <div class="dash-kpi-grid" id="dash-kpis"></div>
+
+            <!-- INGRESOS POR MES -->
+            <div class="dash-section">📅 Ingresos por mes</div>
+            <div class="dash-chart-wrap"><canvas id="dash-chart"></canvas></div>
+
+            <!-- GASTOS ─────────────────────────── -->
+            <div class="dash-section" style="display:flex;align-items:center;justify-content:space-between;">
+                <span>💸 Gastos</span>
+                <button onclick="resetGastos()" style="font-size:9px;font-weight:800;font-family:var(--font-title);background:rgba(255,71,87,0.12);color:#ff4757;border:1px solid rgba(255,71,87,0.3);border-radius:20px;padding:4px 12px;cursor:pointer;text-transform:uppercase;">⟳ Reiniciar</button>
+            </div>
+
+            <!-- Formulario de captura -->
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input type="text" id="gasto-desc" class="input-box" placeholder="Descripción del gasto" style="flex:2;margin:0;">
+                <input type="number" id="gasto-monto" class="input-box" placeholder="MXN" style="flex:1;margin:0;" onkeydown="if(event.key==='Enter')addGasto()">
+                <button onclick="addGasto()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:13px;cursor:pointer;color:#000;flex-shrink:0;">+</button>
+            </div>
+
+            <!-- Gráfica de gastos -->
+            <div class="dash-gastos-chart-wrap"><canvas id="dash-gastos-chart"></canvas></div>
+
+            <!-- Lista de gastos -->
+            <div id="dash-gastos-list" style="max-height:220px;overflow-y:auto;margin-bottom:4px;"></div>
+
+            <!-- TOP CLIENTES -->
+            <div class="dash-section">🏆 Top clientes</div>
+            <div id="dash-top"></div>
+
+        </div>
+        <!-- FIN TAB DASHBOARD ═══════════════════════════════════ -->
 
     </div>
 </div>
@@ -541,20 +700,48 @@
             const cli = clientsWithOrders[cid];
             const pedidos = cli.pedidos;
 
-            // --- Último pedido para mostrar en header ---
-            const lastPed = pedidos[pedidos.length - 1];
-            const lastIdx = pedidos.length - 1;
+            // --- Detectar alerta de anticipo (+3 días sin pagar) ---
+            const DIAS_ALERTA = 3;
+            let hayAlerta = false;
+            pedidos.forEach(p => {
+                if(!p.pagA && p.fecha) {
+                    const parts = p.fecha.split('/');
+                    if(parts.length >= 3) {
+                        const d = new Date(parts[2], parts[1]-1, parts[0]);
+                        const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+                        if(dias >= DIAS_ALERTA) hayAlerta = true;
+                    }
+                }
+            });
 
             // --- Bloque de tarjetas de pedidos individuales ---
             let pedidosHTML = '';
             pedidos.forEach((p, idx) => {
+                // Estado del pedido
+                const estado = p.estado || 'proceso';
+                const estadoLabel = {proceso:'⚙️ En proceso', listo:'✅ Listo', enviado:'📦 Enviado'}[estado];
+                const estadoClass = {proceso:'estado-proceso', listo:'estado-listo', enviado:'estado-enviado'}[estado];
+
+                // Alerta anticipo para este pedido
+                let alertaBadge = '';
+                if(!p.pagA && p.fecha) {
+                    const parts = p.fecha.split('/');
+                    if(parts.length >= 3) {
+                        const d = new Date(parts[2], parts[1]-1, parts[0]);
+                        const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+                        if(dias >= DIAS_ALERTA) alertaBadge = `<span class="alerta-badge">🔴 Anticipo pendiente ${dias}d</span>`;
+                    }
+                }
+
                 pedidosHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                ${alertaBadge}
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                     <div onclick="openOverlay('${cid}', ${idx})" style="cursor:pointer; flex:1">
                         <div style="font-size:10px; color:var(--text-dim)">Pedido ${idx+1} · ${p.fecha || '—'}</div>
                         <div style="font-size:13px; font-weight:700; color:var(--text-main)">$${p.tot} MXN</div>
                     </div>
-                    <div style="display:flex; gap:4px; align-items:center;">
+                    <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+                        <button class="estado-btn ${estadoClass}" onclick="cycleEstado('${cid}', ${idx})">${estadoLabel}</button>
                         <button style="padding:6px 10px; font-size:9px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="sendCobranza('${cid}', ${idx})">COBRAR</button>
                         <button style="background:none; border:none; color:#555; cursor:pointer; font-size:16px; padding:0 4px;" onclick="removeOrderCard('${cid}', ${idx})">×</button>
                     </div>
@@ -566,7 +753,12 @@
                 </div>`;
             });
 
-            // --- Gráfica e insights (solo si hay 2+ pedidos) ---
+            // --- Notas rápidas del cliente ---
+            const notaHTML = `
+                <span class="nota-label">📝 Notas del cliente</span>
+                <textarea class="nota-rapida" id="nota-${cid}" placeholder="Preferencias, colores, estilo..." onblur="saveNota('${cid}')">${cli.nota || ''}</textarea>`;
+
+            // --- Gráfica e insights ---
             const canvasId = `chart-${cid}`;
             const trendHTML = pedidos.length >= 1 ? `
                 <div class="trend-wrap">
@@ -576,9 +768,10 @@
                 </div>` : '';
 
             list.innerHTML += `
-            <div class="client-item">
+            <div class="client-item${hayAlerta ? ' alerta-anticipo' : ''}">
                 <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:16px">${cli.nombre}</div>
                 ${pedidosHTML}
+                ${notaHTML}
                 ${trendHTML}
             </div>`;
         });
@@ -907,8 +1100,13 @@
     function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('b-'+t).classList.add('active');
-        ['calc','new','list','dif'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
+        ['calc','new','list','dif','dash'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
         if(t === 'dif') renderDifContacts();
+        if(t === 'dash') renderDashboard();
+        // Mostrar búsqueda global en Base y Dashboard
+        const gsw = document.getElementById('global-search-wrap');
+        if(gsw) gsw.style.display = (t==='list'||t==='dash') ? 'block' : 'none';
+        if(t !== 'list' && t !== 'dash') { document.getElementById('global-results').style.display='none'; }
     }
 
     function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
@@ -1198,6 +1396,227 @@
 
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+
+    // ── ESTADO DEL PEDIDO ──
+    function cycleEstado(cid, idx) {
+        const estados = ['proceso', 'listo', 'enviado'];
+        const p = clipData[cid].pedidos[idx];
+        const current = p.estado || 'proceso';
+        const next = estados[(estados.indexOf(current) + 1) % estados.length];
+        db.ref(`clientes_v3/${cid}/pedidos/${idx}/estado`).set(next);
+    }
+
+    // ── NOTAS RÁPIDAS ──
+    function saveNota(cid) {
+        const val = document.getElementById(`nota-${cid}`)?.value || '';
+        db.ref(`clientes_v3/${cid}/nota`).set(val);
+    }
+
+    // ── BÚSQUEDA GLOBAL ──
+    function globalSearch(q) {
+        const res = document.getElementById('global-results');
+        if(!q || q.length < 2) { res.style.display = 'none'; return; }
+        const ql = q.toLowerCase();
+        const hits = [];
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
+            // Buscar por nombre de cliente
+            if(cli.nombre && cli.nombre.toLowerCase().includes(ql)) {
+                const total = cli.pedidos ? cli.pedidos.reduce((a,p)=>a+(p.tot||0),0) : 0;
+                hits.push({ type:'cliente', cid, nombre: cli.nombre, sub: `${cli.pedidos?.length||0} pedidos · $${total.toLocaleString()} MXN total` });
+            }
+            // Buscar por items dentro de pedidos
+            if(cli.pedidos) {
+                cli.pedidos.forEach((p, idx) => {
+                    if(p.items) {
+                        p.items.forEach(it => {
+                            if(it.nom && it.nom.toLowerCase().includes(ql)) {
+                                hits.push({ type:'pedido', cid, idx, nombre: cli.nombre, sub: `Pedido ${idx+1} · ${it.nom} · $${p.tot} MXN` });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        if(hits.length === 0) { res.innerHTML = `<div class="gr-item"><div class="gr-item-sub">Sin resultados</div></div>`; res.style.display='block'; return; }
+        res.innerHTML = hits.slice(0,8).map(h => `
+            <div class="gr-item" onclick="globalSearchGo('${h.cid}', ${h.idx !== undefined ? h.idx : -1})">
+                <div class="gr-item-name">${h.nombre} <span class="gr-tag">${h.type==='cliente'?'Cliente':'Pedido'}</span></div>
+                <div class="gr-item-sub">${h.sub}</div>
+            </div>`).join('');
+        res.style.display = 'block';
+    }
+
+    function globalSearchGo(cid, idx) {
+        document.getElementById('global-results').style.display = 'none';
+        document.getElementById('global-search').value = '';
+        showTab('list');
+        // Scroll a la tarjeta del cliente
+        requestAnimationFrame(() => {
+            const cards = document.querySelectorAll('.client-item');
+            cards.forEach(card => {
+                const nombre = clipData[cid]?.nombre || '';
+                if(card.innerText.startsWith(nombre)) {
+                    card.scrollIntoView({ behavior:'smooth', block:'center' });
+                    card.style.outline = '2px solid var(--accent)';
+                    setTimeout(() => card.style.outline = '', 2000);
+                }
+            });
+        });
+    }
+
+    // ── DASHBOARD ──
+    let dashChartInstance = null;
+    let dashGastosChartInstance = null;
+
+    // Gastos en Firebase
+    let gastosData = [];
+    db.ref('gastos_v1').on('value', snap => {
+        gastosData = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,key:k})) : [];
+        // Re-renderizar dashboard si está visible
+        if(document.getElementById('tab-dash').style.display !== 'none') renderDashboard();
+    });
+
+    function addGasto() {
+        const desc  = document.getElementById('gasto-desc').value.trim();
+        const monto = parseFloat(document.getElementById('gasto-monto').value);
+        if(!desc || !monto || monto <= 0) return alert('Escribe descripción y monto válido');
+        const fecha = new Date().toLocaleDateString('es-MX');
+        db.ref('gastos_v1').push({ desc, monto, fecha });
+        document.getElementById('gasto-desc').value  = '';
+        document.getElementById('gasto-monto').value = '';
+    }
+
+    function deleteGasto(key) {
+        if(!confirm('¿Eliminar este gasto?')) return;
+        db.ref(`gastos_v1/${key}`).remove();
+    }
+
+    function resetGastos() {
+        if(!confirm('¿Reiniciar TODOS los gastos? Esta acción no se puede deshacer.')) return;
+        db.ref('gastos_v1').remove();
+    }
+
+    function renderDashboard() {
+        // Recopilar todos los pedidos
+        const allPedidos = [];
+        const clienteTotales = {};
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
+            if(!cli.pedidos) return;
+            cli.pedidos.forEach(p => {
+                allPedidos.push({ ...p, clienteNombre: cli.nombre, cid });
+                clienteTotales[cid] = (clienteTotales[cid] || 0) + (p.tot || 0);
+            });
+        });
+
+        const totalIngresos = allPedidos.reduce((a,p) => a+(p.tot||0), 0);
+        const totalGastos   = gastosData.reduce((a,g) => a+(g.monto||0), 0);
+        const utilidad      = totalIngresos - totalGastos;
+        const ticketProm    = allPedidos.length ? Math.round(totalIngresos / allPedidos.length) : 0;
+        const totalClientes = Object.keys(clipData).length;
+
+        // KPIs — ahora incluye gastos y utilidad
+        const utilClass = utilidad >= 0 ? 'dash-utilidad-pos' : 'dash-utilidad-neg';
+        document.getElementById('dash-kpis').innerHTML = `
+            <div class="dash-kpi"><div class="dash-kpi-val">$${(totalIngresos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Ingresos</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val" style="color:#ff4757">$${(totalGastos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Gastos</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val ${utilClass}">$${(utilidad/1000).toFixed(1)}k</div><div class="dash-kpi-label">Utilidad</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val">${totalClientes}</div><div class="dash-kpi-label">Clientes</div></div>`;
+
+        const isLight   = document.body.classList.contains('light');
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+        const labelColor= isLight ? '#888' : '#555';
+
+        // Gráfica ingresos por mes
+        const byMonth = {};
+        allPedidos.forEach(p => {
+            if(!p.fecha) return;
+            const parts = p.fecha.split('/');
+            if(parts.length < 3) return;
+            const key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+            byMonth[key] = (byMonth[key] || 0) + (p.tot || 0);
+        });
+        const sortedMonths = Object.keys(byMonth).sort();
+        const monthLabels = sortedMonths.map(k => { const [y,m] = k.split('-'); return ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)]+' '+y.slice(2); });
+        const monthData = sortedMonths.map(k => byMonth[k]);
+
+        if(dashChartInstance) dashChartInstance.destroy();
+        const ctx = document.getElementById('dash-chart');
+        if(ctx) {
+            dashChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthLabels.length ? monthLabels : ['Sin datos'],
+                    datasets: [{ data: monthData.length ? monthData : [0], backgroundColor: 'rgba(37,211,102,0.7)', borderRadius: 8, borderSkipped: false }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` $${ctx.parsed.y.toLocaleString()} MXN` }}},
+                    scales: {
+                        x: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}} },
+                        y: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}, callback: v=>`$${(v/1000).toFixed(0)}k`}}
+                    }
+                }
+            });
+        }
+
+        // Gráfica de gastos por descripción (barras horizontales agrupadas)
+        const gastosPorDesc = {};
+        gastosData.forEach(g => {
+            gastosPorDesc[g.desc] = (gastosPorDesc[g.desc] || 0) + (g.monto || 0);
+        });
+        const gLabels = Object.keys(gastosPorDesc);
+        const gData   = gLabels.map(k => gastosPorDesc[k]);
+
+        if(dashGastosChartInstance) dashGastosChartInstance.destroy();
+        const ctxG = document.getElementById('dash-gastos-chart');
+        if(ctxG) {
+            dashGastosChartInstance = new Chart(ctxG, {
+                type: 'bar',
+                data: {
+                    labels: gLabels.length ? gLabels : ['Sin gastos'],
+                    datasets: [{ data: gData.length ? gData : [0], backgroundColor: 'rgba(255,71,87,0.65)', borderRadius: 8, borderSkipped: false }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` $${ctx.parsed.x.toLocaleString()} MXN` }}},
+                    scales: {
+                        x: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}, callback: v=>`$${(v/1000).toFixed(0)}k`} },
+                        y: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}} }
+                    }
+                }
+            });
+        }
+
+        // Lista de gastos individuales
+        const listEl = document.getElementById('dash-gastos-list');
+        if(listEl) {
+            listEl.innerHTML = gastosData.length
+                ? [...gastosData].reverse().map(g => `
+                    <div class="gasto-item">
+                        <div style="flex:1">
+                            <div class="gasto-desc">${g.desc}</div>
+                            <div class="gasto-fecha">${g.fecha || ''}</div>
+                        </div>
+                        <div class="gasto-monto">-$${(g.monto||0).toLocaleString()}</div>
+                        <button class="gasto-del" onclick="deleteGasto('${g.key}')">×</button>
+                    </div>`).join('')
+                : '<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:16px">Sin gastos registrados</div>';
+        }
+
+        // Top clientes
+        const topClientes = Object.keys(clienteTotales)
+            .sort((a,b) => clienteTotales[b]-clienteTotales[a])
+            .slice(0,5);
+        document.getElementById('dash-top').innerHTML = topClientes.map(cid => `
+            <div class="dash-top-item">
+                <div class="dash-top-name">${clipData[cid]?.nombre || '—'}</div>
+                <div class="dash-top-val">$${clienteTotales[cid].toLocaleString()}</div>
+            </div>`).join('') || '<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:20px">Sin datos aún</div>';
     }
 
     // ── THEME TOGGLE ──
