@@ -261,6 +261,53 @@
         .dash-utilidad-neg { color: #ff4757; }
         .dash-gastos-chart-wrap { position:relative; height:140px; margin-bottom:10px; }
 
+
+        /* ── KANBAN ── */
+        .kanban-wrap {
+            display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;
+            margin-top:4px;
+        }
+        .kanban-col {
+            background:var(--badge-bg); border:1px solid var(--border);
+            border-radius:16px; padding:12px 10px; min-height:100px;
+        }
+        .kanban-col-title {
+            font-family:var(--font-title); font-size:9px; font-weight:900;
+            text-transform:uppercase; letter-spacing:0.08em;
+            margin-bottom:10px; text-align:center; padding:5px;
+            border-radius:8px;
+        }
+        .kanban-col-title.kp { background:rgba(255,200,0,0.15); color:#f0b429; }
+        .kanban-col-title.kl { background:rgba(80,160,255,0.15); color:#50a0ff; }
+        .kanban-col-title.ke { background:rgba(37,211,102,0.15); color:#25D366; }
+        .kanban-card {
+            background:var(--card-bg); border:1px solid var(--border);
+            border-radius:10px; padding:10px; margin-bottom:8px;
+            cursor:pointer; transition:border-color 0.2s;
+        }
+        .kanban-card:hover { border-color: var(--accent); }
+        .kanban-card-name { font-size:11px; font-weight:800; font-family:var(--font-title); margin-bottom:3px; }
+        .kanban-card-total { font-size:12px; font-weight:900; color:var(--accent); font-family:var(--font-title); }
+        .kanban-card-fecha { font-size:9px; color:var(--text-dim); margin-top:2px; }
+        .kanban-empty { font-size:10px; color:var(--text-dim); text-align:center; padding:10px 0; }
+
+        /* ── HISTORIAL DE CAMBIOS ── */
+        .hist-wrap {
+            background:#f5f5f5; border-radius:12px; padding:12px 14px;
+            margin-top:14px; border:1px solid #e0e0e0;
+        }
+        .hist-title {
+            font-size:10px; font-weight:900; font-family:var(--font-title);
+            text-transform:uppercase; letter-spacing:0.08em; color:#888;
+            margin-bottom:8px;
+        }
+        .hist-item {
+            font-size:10px; color:#666; padding:6px 0;
+            border-bottom:1px solid #eee; line-height:1.5;
+        }
+        .hist-item:last-child { border-bottom:none; }
+        .hist-item strong { color:#333; }
+
         /* ── GRÁFICA DE TENDENCIA ── */
         .trend-wrap {
             margin-top: 14px;
@@ -431,7 +478,10 @@
                     <div id="r-text" style="font-size:11px; color:var(--res-text)"></div>
                     <div id="r-tot" style="font-size:20px; font-weight:900; color:var(--res-total); margin-top:5px"></div>
                 </div>
-                <button class="wa-btn" onclick="sendWA()">ENVIAR</button>
+                <div style="display:flex; gap:8px; margin-top:0;">
+                    <button class="wa-btn" onclick="sendWA()" style="flex:2; margin-top:15px;">ENVIAR</button>
+                    <button class="wa-btn" onclick="copyQuote()" style="flex:1; margin-top:15px; background:var(--inp-bg); color:var(--text-main); border:1px solid var(--border);" id="copy-quote-btn">📋</button>
+                </div>
                 <button class="nav-btn" style="width:100%; margin-top:10px; border:1px solid var(--accent); color:var(--accent)" onclick="saveOrder()">REGISTRAR EN BASE</button>
             </div>
         </div>
@@ -527,6 +577,23 @@
 
             <!-- Lista de gastos -->
             <div id="dash-gastos-list" style="max-height:220px;overflow-y:auto;margin-bottom:4px;"></div>
+
+            <!-- KANBAN ── PEDIDOS EN COLA -->
+            <div class="dash-section">📋 Pedidos en cola</div>
+            <div class="kanban-wrap">
+                <div class="kanban-col">
+                    <div class="kanban-col-title kp">⚙️ En proceso</div>
+                    <div id="kanban-proceso"></div>
+                </div>
+                <div class="kanban-col">
+                    <div class="kanban-col-title kl">✅ Listo</div>
+                    <div id="kanban-listo"></div>
+                </div>
+                <div class="kanban-col">
+                    <div class="kanban-col-title ke">📦 Enviado</div>
+                    <div id="kanban-enviado"></div>
+                </div>
+            </div>
 
             <!-- TOP CLIENTES -->
             <div class="dash-section">🏆 Top clientes</div>
@@ -975,6 +1042,19 @@
                 <textarea id="edit-p-notas" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:80px; resize:none" placeholder="Notas sobre el trabajo o cliente...">${p.notas || ''}</textarea>
                 <div id="total-idx-single" style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px">TOTAL: $${p.tot} MXN</div>
             </div>`;
+        // Historial de cambios de precio
+        if(p.historial && p.historial.length > 0) {
+            html += `<div class="hist-wrap">
+                <div class="hist-title">🕓 Historial de cambios</div>
+                ${[...p.historial].reverse().map(h => `
+                    <div class="hist-item">
+                        <strong>${h.fecha}</strong><br>
+                        Antes: $${h.tot_antes} MXN (Ant $${h.ade_antes} · Sal $${h.sal_antes} · Env $${h.env_antes})<br>
+                        Después: <strong>$${h.tot_nuevo} MXN</strong>
+                    </div>`).join('')}
+            </div>`;
+        }
+
         document.getElementById('overlay-content').innerHTML = html;
         document.getElementById('overlay').style.display = 'block';
     }
@@ -1016,6 +1096,25 @@
     function closeOverlay() {
         if(activeCardId){
             const {cid, idx} = activeCardId;
+            const p = clipData[cid].pedidos[idx];
+
+            // Guardar snapshot en historial si el total cambió
+            const newAde = parseFloat(document.getElementById('edit-ade-single').value) || p.ade;
+            const newSal = parseFloat(document.getElementById('edit-sal-single').value) || p.sal;
+            const newEnv = parseFloat(document.getElementById('edit-ship-single').value) || p.env;
+            const newTot = newAde + newSal + newEnv;
+            if(newTot !== p.tot) {
+                if(!p.historial) p.historial = [];
+                p.historial.push({
+                    fecha: new Date().toLocaleString('es-MX'),
+                    tot_antes: p.tot,
+                    ade_antes: p.ade,
+                    sal_antes: p.sal,
+                    env_antes: p.env,
+                    tot_nuevo: newTot,
+                });
+            }
+
             clipData[cid].tel = document.getElementById('edit-cli-tel').value;
             clipData[cid].email = document.getElementById('edit-cli-mail').value;
             clipData[cid].direccion = document.getElementById('edit-cli-dir').value;
@@ -1142,6 +1241,26 @@
         msg += `\n*TOTAL:* $${lastCalc.tot} MXN\n\n_— Cypher_`;
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function copyQuote() {
+        const cli = clipData[selectedClientId];
+        let msg = `FALLEN MINIATURES — COTIZACIÓN\n\n`;
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            if(n) msg += `• ${q}x ${n}\n`;
+        });
+        msg += `\nAnticipo (60%): $${lastCalc.ade} MXN\n`;
+        msg += `Saldo (40%): $${lastCalc.sal} MXN\n`;
+        msg += `Envío: $${lastCalc.ship} MXN\n`;
+        if(lastCalc.descMonto > 0) msg += `Descuento: -$${lastCalc.descMonto} MXN\n`;
+        msg += `\nTOTAL: $${lastCalc.tot} MXN\n\n— Cypher`;
+        navigator.clipboard.writeText(msg).then(() => {
+            const btn = document.getElementById('copy-quote-btn');
+            btn.textContent = '✅';
+            setTimeout(() => btn.textContent = '📋', 2000);
+        }).catch(() => alert('No se pudo copiar al portapapeles'));
     }
 
     function sendCobranza(cid, idx) {
@@ -1629,6 +1748,31 @@
                     </div>`).join('')
                 : '<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:16px">Sin gastos registrados</div>';
         }
+
+        // Kanban — pedidos en cola
+        const kanbanCols = { proceso:[], listo:[], enviado:[] };
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
+            if(!cli.pedidos) return;
+            cli.pedidos.forEach((p, idx) => {
+                const estado = p.estado || 'proceso';
+                if(kanbanCols[estado] !== undefined) {
+                    kanbanCols[estado].push({ cid, idx, nombre: cli.nombre, tot: p.tot, fecha: p.fecha });
+                }
+            });
+        });
+        ['proceso','listo','enviado'].forEach(col => {
+            const el = document.getElementById(`kanban-${col}`);
+            if(!el) return;
+            el.innerHTML = kanbanCols[col].length
+                ? kanbanCols[col].map(c => `
+                    <div class="kanban-card" onclick="globalSearchGo('${c.cid}', ${c.idx})">
+                        <div class="kanban-card-name">${c.nombre}</div>
+                        <div class="kanban-card-total">$${(c.tot||0).toLocaleString()}</div>
+                        <div class="kanban-card-fecha">${c.fecha || '—'}</div>
+                    </div>`).join('')
+                : `<div class="kanban-empty">Vacío</div>`;
+        });
 
         // Top clientes
         const topClientes = Object.keys(clienteTotales)
