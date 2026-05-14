@@ -1,4 +1,4 @@
-                            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <style>
         :root {
@@ -19,7 +20,6 @@
             --text-dim: #888;
             --font-main: 'Inter', sans-serif;
             --font-title: 'Outfit', sans-serif;
-            /* inputs y resultados */
             --inp-bg: #1f1f1f;
             --inp-border: #2a2a2a;
             --inp-color: #fff;
@@ -40,7 +40,6 @@
             --ship-border: #333;
         }
 
-        /* ── LIGHT MODE ── */
         body.light {
             --bg: #f0f2f5;
             --card-bg: #ffffff;
@@ -106,22 +105,11 @@
 
         /* ── TOGGLE BUTTON ── */
         .theme-toggle {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 999;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            background: var(--card-bg);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            cursor: pointer;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s, background 0.3s;
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            width: 50px; height: 50px; border-radius: 50%; border: none;
+            background: var(--card-bg); box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            cursor: pointer; font-size: 22px; display: flex; align-items: center;
+            justify-content: center; transition: transform 0.2s, background 0.3s;
             border: 1px solid var(--border);
         }
         .theme-toggle:hover { transform: scale(1.12); }
@@ -136,8 +124,8 @@
         h2 { font-family: var(--font-title); font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; text-align: center; margin-bottom: 5px; font-size: 26px; }
         .rate-info { text-align: center; font-size: 11px; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; font-weight: 700; cursor: pointer; border: 1px solid #333; padding: 8px; border-radius: 10px; }
 
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--nav-bg); padding: 6px; border-radius: 16px; transition: background 0.3s; }
-        .nav-btn { flex: 1; background: transparent; border: none; color: var(--text-dim); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; transition: all 0.2s ease; font-family: var(--font-title); }
+        .nav-tabs { display: flex; gap: 6px; margin-bottom: 25px; background: var(--nav-bg); padding: 6px; border-radius: 16px; transition: background 0.3s; }
+        .nav-btn { flex: 1; background: transparent; border: none; color: var(--text-dim); padding: 10px 4px; border-radius: 12px; cursor: pointer; font-size: 10px; font-weight: 700; text-transform: uppercase; transition: all 0.2s ease; font-family: var(--font-title); }
         .nav-btn.active { background: #fff; color: #000; }
 
         .input-box { background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 12px; padding: 14px; margin-bottom: 12px; width: 100%; color: var(--inp-color); font-size: 14px; outline: none; font-family: var(--font-main); transition: background 0.3s, border 0.3s, color 0.3s; }
@@ -157,6 +145,95 @@
         .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+
+        /* ── GRÁFICA DE TENDENCIA ── */
+        .trend-wrap {
+            margin-top: 14px;
+            background: var(--badge-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px 10px;
+        }
+        .trend-title {
+            font-family: var(--font-title); font-size: 9px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .trend-canvas-wrap { position: relative; height: 70px; }
+        .trend-insights {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
+        }
+        .trend-chip {
+            font-size: 9px; font-weight: 800; font-family: var(--font-title);
+            padding: 4px 9px; border-radius: 20px; text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .chip-green  { background: rgba(37,211,102,0.15); color: #25D366; }
+        .chip-yellow { background: rgba(255,200,0,0.15);  color: #f0b429; }
+        .chip-red    { background: rgba(255,71,87,0.15);  color: #ff4757; }
+        .chip-blue   { background: rgba(80,160,255,0.15); color: #50a0ff; }
+        .chip-gray   { background: rgba(136,136,136,0.15);color: #888; }
+
+        /* ── DIFUSIÓN TAB ── */
+        .dif-contact-row {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--client-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 16px; margin-bottom: 8px;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+        }
+        .dif-contact-row.selected { border-color: var(--accent); background: rgba(37,211,102,0.07); }
+        .dif-contact-row input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+        .dif-contact-name { font-family: var(--font-title); font-weight: 700; font-size: 14px; flex: 1; }
+        .dif-contact-tel { font-size: 11px; color: var(--text-dim); }
+
+        .dif-template-btn {
+            background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 10px;
+            padding: 10px 14px; font-size: 11px; font-weight: 700; font-family: var(--font-title);
+            color: var(--text-dim); cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+        }
+        .dif-template-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        .dif-link-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: var(--inp-bg); border: 1px solid var(--inp-border);
+            border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+        }
+        .dif-link-name { font-size: 13px; font-weight: 700; font-family: var(--font-title); }
+        .dif-link-btn {
+            background: var(--accent); color: #000; border: none; border-radius: 10px;
+            padding: 10px 18px; font-size: 11px; font-weight: 800; font-family: var(--font-title);
+            cursor: pointer; white-space: nowrap; text-transform: uppercase;
+        }
+        .dif-select-all-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .dif-counter {
+            font-size: 11px; color: var(--accent); font-weight: 700; font-family: var(--font-title);
+        }
+        #dif-search {
+            background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 12px;
+            padding: 12px 14px; width: 100%; color: var(--inp-color); font-size: 13px;
+            outline: none; font-family: var(--font-main); margin-bottom: 12px;
+            transition: border 0.2s;
+        }
+        #dif-search:focus { border-color: var(--accent); }
+        #dif-msg {
+            background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 12px;
+            padding: 14px; width: 100%; color: var(--inp-color); font-size: 13px;
+            outline: none; font-family: var(--font-main); resize: vertical; min-height: 110px;
+            line-height: 1.6; transition: border 0.2s;
+        }
+        #dif-msg:focus { border-color: var(--accent); }
+        .dif-hint { font-size: 10px; color: var(--text-dim); margin-bottom: 10px; }
+        .dif-section-title {
+            font-family: var(--font-title); font-size: 11px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+            margin-bottom: 10px; margin-top: 18px;
+        }
+        .dif-links-wrap { max-height: 300px; overflow-y: auto; }
+        #dif-contacts-wrap { max-height: 220px; overflow-y: auto; }
+        .dif-empty { text-align: center; color: var(--text-dim); font-size: 12px; padding: 20px 0; }
     </style>
 </head>
 <body>
@@ -196,8 +273,10 @@
             <button class="nav-btn active" id="b-calc" onclick="showTab('calc')">Cotizar</button>
             <button class="nav-btn" id="b-new" onclick="showTab('new')">Nuevo</button>
             <button class="nav-btn" id="b-list" onclick="showTab('list')">Base</button>
+            <button class="nav-btn" id="b-dif" onclick="showTab('dif')">📢 Blast</button>
         </div>
 
+        <!-- TAB: COTIZAR -->
         <div id="tab-calc">
             <input type="text" id="search-input" class="input-box" placeholder="Buscar cliente..." oninput="filterClients()" autocomplete="off">
             <div id="search-results" style="position:relative; background:var(--search-bg); display:none; border-radius:12px; margin-bottom:10px; max-height:150px; overflow-y:auto; z-index:100; border:1px solid var(--search-border); transition:background 0.3s"></div>
@@ -234,6 +313,7 @@
             </div>
         </div>
 
+        <!-- TAB: NUEVO CLIENTE -->
         <div id="tab-new" style="display:none">
             <input type="text" id="c-nom" class="input-box" placeholder="Nombre completo">
             <input type="text" id="c-tel" class="input-box" placeholder="WhatsApp">
@@ -242,7 +322,52 @@
             <button class="wa-btn" style="background:#fff; color:#000" onclick="saveClient()">GUARDAR CLIENTE</button>
         </div>
 
+        <!-- TAB: BASE -->
         <div id="tab-list" style="display:none"><div id="client-list"></div></div>
+
+        <!-- TAB: DIFUSIÓN / BLAST ══════════════════════════════ -->
+        <div id="tab-dif" style="display:none">
+
+            <!-- PLANTILLAS -->
+            <div class="dif-section-title">📋 Plantilla</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px">
+                <button class="dif-template-btn active" id="tpl-libre" onclick="setTemplate('libre')">Libre</button>
+                <button class="dif-template-btn" id="tpl-promo" onclick="setTemplate('promo')">🎉 Promo</button>
+                <button class="dif-template-btn" id="tpl-cobro" onclick="setTemplate('cobro')">💰 Recordatorio</button>
+                <button class="dif-template-btn" id="tpl-seguimiento" onclick="setTemplate('seguimiento')">📦 Seguimiento</button>
+            </div>
+
+            <!-- MENSAJE -->
+            <div class="dif-section-title">✏️ Mensaje</div>
+            <div class="dif-hint">Usa <strong>{nombre}</strong> para personalizar con el nombre del cliente.</div>
+            <textarea id="dif-msg" placeholder="Escribe tu mensaje aquí..."></textarea>
+
+            <!-- BUSCAR Y SELECCIONAR CONTACTOS -->
+            <div class="dif-section-title">👥 Contactos</div>
+            <input type="text" id="dif-search" placeholder="Filtrar por nombre..." oninput="renderDifContacts()">
+            <div class="dif-select-all-row">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; font-weight:700; font-family:var(--font-title)">
+                    <input type="checkbox" id="dif-check-all" onchange="toggleSelectAll(this.checked)" style="accent-color:var(--accent); width:16px; height:16px;">
+                    SELECCIONAR TODOS
+                </label>
+                <span class="dif-counter" id="dif-counter">0 seleccionados</span>
+            </div>
+            <div id="dif-contacts-wrap"></div>
+
+            <!-- GENERAR LINKS -->
+            <button class="wa-btn" onclick="generateDifLinks()" style="margin-top:18px">
+                📲 GENERAR LINKS DE WHATSAPP
+            </button>
+
+            <!-- PANEL DE LINKS GENERADOS -->
+            <div id="dif-links-panel" style="display:none; margin-top:20px">
+                <div class="dif-section-title">🔗 Abre cada chat</div>
+                <div class="dif-links-wrap" id="dif-links-wrap"></div>
+            </div>
+
+        </div>
+        <!-- FIN TAB DIFUSIÓN ════════════════════════════════════ -->
+
     </div>
 </div>
 
@@ -295,20 +420,15 @@
       auth.signOut();
     }
 
-    // Observador de sesión — arranca la app solo cuando hay usuario autenticado
     auth.onAuthStateChanged(user => {
       if(user){
-        // Usuario autenticado — mostrar app
         document.getElementById('fb-login-screen').style.display = 'none';
         document.getElementById('main-app-wrapper').style.display = '';
-        // Mostrar email del usuario en el botón de logout
         const badge = document.getElementById('user-email-badge');
         if(badge) badge.textContent = user.email.split('@')[0];
-        // Arrancar la app
         fetchCatalog();
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
       } else {
-        // No autenticado — mostrar login
         document.getElementById('fb-login-screen').style.display = 'flex';
         document.getElementById('main-app-wrapper').style.display = 'none';
         document.getElementById('fb-btn').disabled = false;
@@ -389,106 +509,242 @@
     }
 
     // 3. RECUPERACIÓN DE DATOS
+    const chartInstances = {};
+
     db.ref('clientes_v3').on('value', snap => {
         clipData = snap.val() || {};
         const list = document.getElementById('client-list'); 
         list.innerHTML = "";
+
+        // Destruir gráficas anteriores
+        Object.values(chartInstances).forEach(c => c.destroy());
+        Object.keys(chartInstances).forEach(k => delete chartInstances[k]);
+
+        // Agrupar pedidos por cliente (un bloque por cliente con todos sus pedidos)
+        const clientsWithOrders = {};
         Object.keys(clipData).reverse().forEach(cid => {
             const cli = clipData[cid];
-            if (cli.pedidos) {
-                cli.pedidos.forEach((p, idx) => {
-                    list.innerHTML += `
-                    <div class="client-item">
-                        <button style="position:absolute; top:15px; right:15px; background:none; border:none; color:#555; cursor:pointer" onclick="removeOrderCard('${cid}', ${idx})">×</button>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-                            <div onclick="openOverlay('${cid}', ${idx})" style="cursor:pointer; flex:1">
-                                <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:var(--text-main)">${cli.nombre}</div>
-                                <div style="font-size:10px; color:var(--text-dim)">Fecha: ${p.fecha}</div>
-                            </div>
-                            <button style="padding:8px; font-size:10px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer; margin-top:10px; margin-right:15px;" onclick="sendCobranza('${cid}', ${idx})">COBRAR</button>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagA',${p.pagA})">ANT. $${p.ade}</div>
-                            <div class="status-badge ${p.pagS?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagS',${p.pagS})">SAL. $${p.sal}</div>
-                            <div class="status-badge ${p.pagE?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagE',${p.pagE})">ENV. $${p.env}</div>
-                        </div>
-                    </div>`;
-                });
+            if(cli.pedidos && cli.pedidos.length > 0) {
+                clientsWithOrders[cid] = cli;
             }
         });
-    });
 
-     async function saveOrder() {
-    if(!selectedClientId) return alert("Selecciona un cliente");
-    
-    let items = [];
-    let itemsStr = "";
-    document.querySelectorAll('#tab-calc .item-row').forEach(r => {
-        const n = r.querySelector('.item-name').value;
-        const q = r.querySelector('.item-qty').value;
-        const p = r.querySelector('.item-price').value;
-        if(n) {
-            items.push({ nom: n, cant: q, prec: p });
-            itemsStr += `${q}x ${n}, `;
-        }
-    });
+        Object.keys(clientsWithOrders).forEach(cid => {
+            const cli = clientsWithOrders[cid];
+            const pedidos = cli.pedidos;
 
-    const cli = clipData[selectedClientId];
-    const fechaActual = new Date().toLocaleDateString();
+            // --- Último pedido para mostrar en header ---
+            const lastPed = pedidos[pedidos.length - 1];
+            const lastIdx = pedidos.length - 1;
 
-    const datosSheets = {
-        id: "ORD-" + Date.now(),
-        nombre: cli.nombre,
-        whatsapp: cli.tel,
-        descripcion: itemsStr,
-        costo: lastCalc.tot,
-        notas: `Anticipo: ${lastCalc.ade} | Saldo: ${lastCalc.sal} | Envío: ${lastCalc.ship}`
-    };
+            // --- Bloque de tarjetas de pedidos individuales ---
+            let pedidosHTML = '';
+            pedidos.forEach((p, idx) => {
+                pedidosHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                    <div onclick="openOverlay('${cid}', ${idx})" style="cursor:pointer; flex:1">
+                        <div style="font-size:10px; color:var(--text-dim)">Pedido ${idx+1} · ${p.fecha || '—'}</div>
+                        <div style="font-size:13px; font-weight:700; color:var(--text-main)">$${p.tot} MXN</div>
+                    </div>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <button style="padding:6px 10px; font-size:9px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="sendCobranza('${cid}', ${idx})">COBRAR</button>
+                        <button style="background:none; border:none; color:#555; cursor:pointer; font-size:16px; padding:0 4px;" onclick="removeOrderCard('${cid}', ${idx})">×</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:5px; margin-bottom:${idx < pedidos.length-1 ? '14px' : '0'}; padding-bottom:${idx < pedidos.length-1 ? '14px' : '0'}; border-bottom:${idx < pedidos.length-1 ? '1px solid var(--border)' : 'none'}">
+                    <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagA',${p.pagA})">ANT. $${p.ade}</div>
+                    <div class="status-badge ${p.pagS?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagS',${p.pagS})">SAL. $${p.sal}</div>
+                    <div class="status-badge ${p.pagE?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagE',${p.pagE})">ENV. $${p.env}</div>
+                </div>`;
+            });
 
-    const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+            // --- Gráfica e insights (solo si hay 2+ pedidos) ---
+            const canvasId = `chart-${cid}`;
+            const trendHTML = pedidos.length >= 1 ? `
+                <div class="trend-wrap">
+                    <div class="trend-title">📈 Historial de compras</div>
+                    <div class="trend-canvas-wrap"><canvas id="${canvasId}"></canvas></div>
+                    <div class="trend-insights" id="insights-${cid}"></div>
+                </div>` : '';
 
-    try {
-        fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
-
-        if(!cli.pedidos) cli.pedidos = [];
-        cli.pedidos.push({
-            fecha: fechaActual, ...lastCalc, env: lastCalc.ship,
-            items: items, pagA: false, pagS: false, pagE: false
+            list.innerHTML += `
+            <div class="client-item">
+                <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:16px">${cli.nombre}</div>
+                ${pedidosHTML}
+                ${trendHTML}
+            </div>`;
         });
 
-        await db.ref(`clientes_v3/${selectedClientId}`).set(cli);
-        alert("¡Pedido registrado y Tarjeta creada!");
-        showTab('list');
-        document.getElementById('search-input').value = "";
-        selectedClientId = "";
-    } catch (error) {
-        alert("Error al guardar pedido");
-    }
-}
+        // Dibujar gráficas y calcular insights después del render
+        requestAnimationFrame(() => {
+            Object.keys(clientsWithOrders).forEach(cid => {
+                const cli = clientsWithOrders[cid];
+                const pedidos = cli.pedidos;
+                if(pedidos.length < 1) return;
+                drawTrendChart(cid, pedidos);
+                renderInsights(cid, pedidos);
+            });
+        });
 
+        renderDifContacts();
+    });
+
+    // ── GRÁFICA DE TENDENCIA ──
+    function drawTrendChart(cid, pedidos) {
+        const canvas = document.getElementById(`chart-${cid}`);
+        if(!canvas) return;
+        const labels = pedidos.map((p, i) => p.fecha ? p.fecha.split('/').slice(0,2).join('/') : `P${i+1}`);
+        const data   = pedidos.map(p => p.tot || 0);
+        const isLight = document.body.classList.contains('light');
+        const gridColor  = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+        const labelColor = isLight ? '#888' : '#555';
+
+        if(chartInstances[cid]) chartInstances[cid].destroy();
+
+        chartInstances[cid] = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    borderColor: '#25D366',
+                    backgroundColor: 'rgba(37,211,102,0.08)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#25D366',
+                    pointRadius: data.length === 1 ? 5 : 3,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: {
+                    callbacks: { label: ctx => ` $${ctx.parsed.y.toLocaleString()} MXN` }
+                }},
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 9 }, maxTicksLimit: 6 } },
+                    y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 9 },
+                        callback: v => `$${(v/1000).toFixed(0)}k`
+                    }}
+                }
+            }
+        });
+    }
+
+    // ── INSIGHTS INTELIGENTES ──
+    function renderInsights(cid, pedidos) {
+        const el = document.getElementById(`insights-${cid}`);
+        if(!el) return;
+
+        const totales = pedidos.map(p => p.tot || 0);
+        const totalHistorico = totales.reduce((a,b) => a+b, 0);
+        const ticketProm = Math.round(totalHistorico / pedidos.length);
+        const n = pedidos.length;
+
+        // Calcular días desde el último pedido
+        let diasDesdeUltimo = null;
+        const lastPed = pedidos[pedidos.length - 1];
+        if(lastPed.fecha) {
+            const parts = lastPed.fecha.split('/');
+            if(parts.length >= 3) {
+                const d = new Date(parts[2], parts[1]-1, parts[0]);
+                diasDesdeUltimo = Math.floor((Date.now() - d.getTime()) / 86400000);
+            }
+        }
+
+        // Tendencia (comparar última mitad vs primera mitad)
+        let tendenciaChip = '';
+        if(n >= 3) {
+            const mitad = Math.floor(n/2);
+            const promReciente = totales.slice(-mitad).reduce((a,b)=>a+b,0)/mitad;
+            const promAntiguo  = totales.slice(0, mitad).reduce((a,b)=>a+b,0)/mitad;
+            if(promReciente > promAntiguo * 1.1)
+                tendenciaChip = `<span class="trend-chip chip-green">📈 Creciendo</span>`;
+            else if(promReciente < promAntiguo * 0.9)
+                tendenciaChip = `<span class="trend-chip chip-red">📉 Bajando</span>`;
+            else
+                tendenciaChip = `<span class="trend-chip chip-blue">➡️ Estable</span>`;
+        }
+
+        // Frecuencia
+        let freqChip = '';
+        if(n === 1) freqChip = `<span class="trend-chip chip-gray">1er pedido</span>`;
+        else if(n >= 5) freqChip = `<span class="trend-chip chip-green">⭐ Cliente frecuente</span>`;
+        else if(n >= 3) freqChip = `<span class="trend-chip chip-blue">Cliente recurrente</span>`;
+        else freqChip = `<span class="trend-chip chip-gray">${n} pedidos</span>`;
+
+        // Actividad reciente
+        let actividadChip = '';
+        if(diasDesdeUltimo !== null) {
+            if(diasDesdeUltimo <= 30)
+                actividadChip = `<span class="trend-chip chip-green">🟢 Activo</span>`;
+            else if(diasDesdeUltimo <= 90)
+                actividadChip = `<span class="trend-chip chip-yellow">🟡 ${diasDesdeUltimo}d sin comprar</span>`;
+            else
+                actividadChip = `<span class="trend-chip chip-red">🔴 ${diasDesdeUltimo}d inactivo</span>`;
+        }
+
+        // Sugerencia
+        let sugerenciaChip = '';
+        if(diasDesdeUltimo !== null && diasDesdeUltimo > 60 && n >= 2)
+            sugerenciaChip = `<span class="trend-chip chip-yellow">💡 Candidate a promo</span>`;
+        if(n >= 5 && diasDesdeUltimo !== null && diasDesdeUltimo <= 60)
+            sugerenciaChip = `<span class="trend-chip chip-green">🎁 Merece descuento</span>`;
+
+        el.innerHTML = `
+            ${freqChip}${actividadChip}${tendenciaChip}${sugerenciaChip}
+            <span class="trend-chip chip-gray">Total: $${totalHistorico.toLocaleString()}</span>
+            <span class="trend-chip chip-gray">Prom: $${ticketProm.toLocaleString()}</span>
+        `;
+    }
+
+    async function saveOrder() {
+        if(!selectedClientId) return alert("Selecciona un cliente");
+        let items = [];
+        let itemsStr = "";
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            const p = r.querySelector('.item-price').value;
+            if(n) { items.push({ nom: n, cant: q, prec: p }); itemsStr += `${q}x ${n}, `; }
+        });
+        const cli = clipData[selectedClientId];
+        const fechaActual = new Date().toLocaleDateString();
+        const datosSheets = {
+            id: "ORD-" + Date.now(), nombre: cli.nombre, whatsapp: cli.tel,
+            descripcion: itemsStr, costo: lastCalc.tot,
+            notas: `Anticipo: ${lastCalc.ade} | Saldo: ${lastCalc.sal} | Envío: ${lastCalc.ship}`
+        };
+        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+        try {
+            fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
+            if(!cli.pedidos) cli.pedidos = [];
+            cli.pedidos.push({ fecha: fechaActual, ...lastCalc, env: lastCalc.ship, items: items, pagA: false, pagS: false, pagE: false });
+            await db.ref(`clientes_v3/${selectedClientId}`).set(cli);
+            alert("¡Pedido registrado y Tarjeta creada!");
+            showTab('list');
+            document.getElementById('search-input').value = "";
+            selectedClientId = "";
+        } catch (error) { alert("Error al guardar pedido"); }
+    }
 
     // 4. Overlay y Edición
-        function openOverlay(cid, idx) {
+    function openOverlay(cid, idx) {
         activeCardId = {cid, idx};
         const cli = clipData[cid];
         const p = cli.pedidos[idx];
-        
         let html = `
             <div style="font-weight:900; margin-bottom:10px; font-size:18px">EDITAR PEDIDO: ${cli.nombre}</div>
-            
             <div style="margin-bottom:20px; padding:15px; background:#f0f0f0; border-radius:15px;">
                 <label class="label" style="color:#666">WHATSAPP</label>
                 <input type="text" id="edit-cli-tel" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.tel || ''}">
-                
                 <label class="label" style="color:#666">E-MAIL</label>
                 <input type="email" id="edit-cli-mail" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.email || ''}">
-                
                 <label class="label" style="color:#666">DIRECCIÓN</label>
                 <textarea id="edit-cli-dir" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:60px; resize:none">${cli.direccion || ''}</textarea>
             </div>
-
             <div id="items-edit-single">`;
-
         p.items.forEach(it => {
             html += `<div class="edit-row">
                 <div style="flex:2; position:relative;"><input type="text" class="it-n" value="${it.nom}" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div>
@@ -497,10 +753,8 @@
                 <button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>
             </div>`;
         });
-        
         html += `</div>
             <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay()">+ PRODUCTO</button>
-            
             <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
                 <div style="display:flex; gap:10px">
                     <div style="flex:1">
@@ -516,10 +770,8 @@
                 <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
                 <label class="label" style="color:#666">ENVÍO MXN</label>
                 <input type="number" id="edit-ship-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.env}" oninput="overlayRecalc()">
-                
                 <label class="label" style="color:#666; margin-top:10px">NOTAS DEL PEDIDO</label>
                 <textarea id="edit-p-notas" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:80px; resize:none" placeholder="Notas sobre el trabajo o cliente...">${p.notas || ''}</textarea>
-                
                 <div id="total-idx-single" style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px">TOTAL: $${p.tot} MXN</div>
             </div>`;
         document.getElementById('overlay-content').innerHTML = html;
@@ -543,14 +795,7 @@
         let mxn = usd * currentRate;
         let dM = Math.ceil(parseDiscount(dIn, mxn));
         let mxnD = mxn - dM;
-
-        p.ade = Math.ceil(mxnD * 0.6); 
-        p.sal = Math.ceil(mxnD * 0.4); 
-        p.env = ship; 
-        p.descVal = dIn; 
-        p.descMonto = dM; 
-        p.tot = Math.ceil(mxnD) + ship;
-
+        p.ade = Math.ceil(mxnD * 0.6); p.sal = Math.ceil(mxnD * 0.4); p.env = ship; p.descVal = dIn; p.descMonto = dM; p.tot = Math.ceil(mxnD) + ship;
         document.getElementById('edit-ade-single').value = p.ade;
         document.getElementById('edit-sal-single').value = p.sal;
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
@@ -567,19 +812,13 @@
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
     }
 
-        function closeOverlay() {
+    function closeOverlay() {
         if(activeCardId){
             const {cid, idx} = activeCardId;
-            
-            // Actualizamos los datos generales del cliente
             clipData[cid].tel = document.getElementById('edit-cli-tel').value;
             clipData[cid].email = document.getElementById('edit-cli-mail').value;
             clipData[cid].direccion = document.getElementById('edit-cli-dir').value;
-            
-            // Guardamos las notas específicas de este pedido
             clipData[cid].pedidos[idx].notas = document.getElementById('edit-p-notas').value;
-
-            // Subimos el objeto completo a Firebase
             db.ref(`clientes_v3/${cid}`).set(clipData[cid]);
         }
         document.getElementById('overlay').style.display = 'none';
@@ -637,45 +876,37 @@
         }
     }
 
-        async function saveClient() {
-    const n = document.getElementById('c-nom').value;
-    const t = document.getElementById('c-tel').value;
-    const m = document.getElementById('c-mail').value;
-    const d = document.getElementById('c-dir').value;
-
-    if(!n || !t) return alert("Nombre y Tel obligatorios");
-
-    const datosSheets = {
-        id: "CLI-" + Date.now(),
-        nombre: n, whatsapp: t, email: m, direccion: d,
-        descripcion: "NUEVO CLIENTE", costo: 0, notas: "Registro inicial"
-    };
-
-    const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
-
-    try {
-        fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
-        await db.ref('clientes_v3').push({ nombre: n, tel: t, email: m, direccion: d });
-        alert("Cliente guardado en ambos sistemas");
-        
-        document.getElementById('c-nom').value = "";
-        document.getElementById('c-tel').value = "";
-        document.getElementById('c-mail').value = "";
-        document.getElementById('c-dir').value = "";
-        showTab('calc');
-    } catch (e) {
-        alert("Error al guardar cliente");
+    async function saveClient() {
+        const n = document.getElementById('c-nom').value;
+        const t = document.getElementById('c-tel').value;
+        const m = document.getElementById('c-mail').value;
+        const d = document.getElementById('c-dir').value;
+        if(!n || !t) return alert("Nombre y Tel obligatorios");
+        const datosSheets = { id: "CLI-" + Date.now(), nombre: n, whatsapp: t, email: m, direccion: d, descripcion: "NUEVO CLIENTE", costo: 0, notas: "Registro inicial" };
+        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+        try {
+            fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
+            await db.ref('clientes_v3').push({ nombre: n, tel: t, email: m, direccion: d });
+            alert("Cliente guardado en ambos sistemas");
+            document.getElementById('c-nom').value = "";
+            document.getElementById('c-tel').value = "";
+            document.getElementById('c-mail').value = "";
+            document.getElementById('c-dir').value = "";
+            showTab('calc');
+        } catch (e) { alert("Error al guardar cliente"); }
     }
-}
 
-   function showTab(t) { 
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
-    document.getElementById('b-'+t).classList.add('active');
-    ['calc','new','list'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
-}
+    function showTab(t) { 
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('b-'+t).classList.add('active');
+        ['calc','new','list','dif'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
+        if(t === 'dif') renderDifContacts();
+    }
+
     function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
     function removeOrderCard(cid, idx) { if(confirm("¿Borrar pedido?")) { clipData[cid].pedidos.splice(idx, 1); db.ref(`clientes_v3/${cid}/pedidos`).set(clipData[cid].pedidos); } }
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
+    
     function addItemTab(id) {
         const div = document.createElement('div'); div.className = 'item-row edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
@@ -686,8 +917,8 @@
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById('items-edit-single').appendChild(div);
     }
-    // --- FUNCIONES DE ACCIÓN Y WHATSAPP ---
 
+    // ── WHATSAPP FUNCTIONS ──
     function sendWA() {
         const cli = clipData[selectedClientId];
         if(!cli) return alert("Selecciona un cliente");
@@ -702,7 +933,6 @@
         msg += `*Envío:* $${lastCalc.ship} MXN\n`;
         if(lastCalc.descMonto > 0) msg += `*Descuento:* -$${lastCalc.descMonto} MXN\n`;
         msg += `\n*TOTAL:* $${lastCalc.tot} MXN`;
-
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
     }
@@ -712,22 +942,147 @@
         const p = cli.pedidos[idx];
         let msg = `*RECORDATORIO DE PAGO - FALLEN MINIATURES*\n\n`;
         msg += `Hola *${cli.nombre}*, te comparto el estado de tu pedido:\n\n`;
-        
         if(!p.pagA) msg += `• *Anticipo Pendiente:* $${p.ade} MXN\n`;
         if(!p.pagS) msg += `• *Saldo Pendiente:* $${p.sal} MXN\n`;
         if(!p.pagE) msg += `• *Envío Pendiente:* $${p.env} MXN\n`;
-        
         msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_Gracias._`;
-
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    // Estas funciones ya estaban enlazadas en los botones:
-    // saveClient() -> Guarda el cliente nuevo en Firebase
-    // saveOrder()  -> Registra el pedido calculado en la base de datos
-  
-    // fetchCatalog() ahora es llamado por onAuthStateChanged tras login exitoso
+    // ════════════════════════════════════════════
+    //  DIFUSIÓN / BLAST
+    // ════════════════════════════════════════════
+
+    const TEMPLATES = {
+        libre: '',
+        promo: `🎉 *¡Hola {nombre}!*\n\nTenemos una promoción especial para ti 👇\n\n✨ [Describe tu promo aquí]\n\n¡No te la pierdas! Contáctanos para más info. 🎨\n\n_— Fallen Miniatures_`,
+        cobro: `💰 *Hola {nombre}*, te enviamos un recordatorio de pago de tu pedido con Fallen Miniatures.\n\nSi tienes alguna duda, con gusto te ayudamos. 🙌\n\n_— Fallen Miniatures_`,
+        seguimiento: `📦 *¡Hola {nombre}!*\n\nQuería darte una actualización sobre el estado de tu pedido con Fallen Miniatures.\n\n[Escribe aquí la actualización]\n\n¡Gracias por tu confianza! 🎨\n\n_— Fallen Miniatures_`
+    };
+
+    let currentTemplate = 'libre';
+
+    function setTemplate(key) {
+        currentTemplate = key;
+        document.querySelectorAll('.dif-template-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tpl-' + key).classList.add('active');
+        document.getElementById('dif-msg').value = TEMPLATES[key];
+        // Ocultar panel de links al cambiar plantilla
+        document.getElementById('dif-links-panel').style.display = 'none';
+    }
+
+    function renderDifContacts() {
+        const wrap = document.getElementById('dif-contacts-wrap');
+        if(!wrap) return;
+        const filter = (document.getElementById('dif-search')?.value || '').toLowerCase();
+        wrap.innerHTML = '';
+
+        const ids = Object.keys(clipData);
+        // Deduplicar por nombre+tel para no mostrar el mismo cliente múltiples veces
+        const seen = new Set();
+        const contacts = [];
+        ids.forEach(cid => {
+            const cli = clipData[cid];
+            if(!cli.nombre || !cli.tel) return;
+            const key = cli.tel.replace(/\D/g,'');
+            if(seen.has(key)) return;
+            seen.add(key);
+            contacts.push({ cid, nombre: cli.nombre, tel: cli.tel });
+        });
+
+        const filtered = filter ? contacts.filter(c => c.nombre.toLowerCase().includes(filter)) : contacts;
+
+        if(filtered.length === 0) {
+            wrap.innerHTML = `<div class="dif-empty">No hay contactos${filter ? ' con ese filtro' : ' en la base'}.</div>`;
+            updateDifCounter();
+            return;
+        }
+
+        filtered.forEach(c => {
+            const row = document.createElement('div');
+            row.className = 'dif-contact-row';
+            row.dataset.cid = c.cid;
+            row.dataset.nombre = c.nombre;
+            row.dataset.tel = c.tel;
+            row.innerHTML = `
+                <input type="checkbox" id="dif-chk-${c.cid}" onchange="onDifCheck(this)">
+                <label for="dif-chk-${c.cid}" style="flex:1; cursor:pointer">
+                    <div class="dif-contact-name">${c.nombre}</div>
+                    <div class="dif-contact-tel">${c.tel}</div>
+                </label>`;
+            row.querySelector('input').addEventListener('change', () => {
+                row.classList.toggle('selected', row.querySelector('input').checked);
+            });
+            wrap.appendChild(row);
+        });
+
+        updateDifCounter();
+    }
+
+    function onDifCheck(checkbox) {
+        const row = checkbox.closest('.dif-contact-row');
+        row.classList.toggle('selected', checkbox.checked);
+        updateDifCounter();
+        // Sincronizar "seleccionar todos"
+        const all = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]');
+        const checked = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]:checked');
+        document.getElementById('dif-check-all').indeterminate = checked.length > 0 && checked.length < all.length;
+        document.getElementById('dif-check-all').checked = checked.length === all.length && all.length > 0;
+    }
+
+    function toggleSelectAll(checked) {
+        document.querySelectorAll('#dif-contacts-wrap .dif-contact-row').forEach(row => {
+            row.querySelector('input').checked = checked;
+            row.classList.toggle('selected', checked);
+        });
+        updateDifCounter();
+    }
+
+    function updateDifCounter() {
+        const n = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]:checked').length;
+        const el = document.getElementById('dif-counter');
+        if(el) el.textContent = `${n} seleccionado${n !== 1 ? 's' : ''}`;
+    }
+
+    function generateDifLinks() {
+        const msg = document.getElementById('dif-msg').value.trim();
+        if(!msg) return alert('Escribe un mensaje antes de generar los links.');
+
+        const selected = [];
+        document.querySelectorAll('#dif-contacts-wrap .dif-contact-row').forEach(row => {
+            if(row.querySelector('input').checked) {
+                selected.push({ nombre: row.dataset.nombre, tel: row.dataset.tel });
+            }
+        });
+
+        if(selected.length === 0) return alert('Selecciona al menos un contacto.');
+
+        const panel = document.getElementById('dif-links-panel');
+        const wrap  = document.getElementById('dif-links-wrap');
+        wrap.innerHTML = '';
+
+        selected.forEach(c => {
+            const personalMsg = msg.replace(/\{nombre\}/gi, c.nombre.split(' ')[0]);
+            const tel = c.tel.replace(/\D/g, '');
+            const url = `https://wa.me/52${tel}?text=${encodeURIComponent(personalMsg)}`;
+
+            const item = document.createElement('div');
+            item.className = 'dif-link-item';
+            item.innerHTML = `
+                <div>
+                    <div class="dif-link-name">${c.nombre}</div>
+                    <div style="font-size:10px; color:var(--text-dim)">${c.tel}</div>
+                </div>
+                <button class="dif-link-btn" onclick="window.open('${url}', '_blank'); this.textContent='✅ Abierto'; this.style.background='#1aab55'">
+                    ABRIR WA
+                </button>`;
+            wrap.appendChild(item);
+        });
+
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     // ── THEME TOGGLE ──
     const THEME_KEY = 'fm_theme';
@@ -744,6 +1099,13 @@
     function toggleTheme(){
         const current = document.body.classList.contains('light') ? 'light' : 'dark';
         applyTheme(current === 'light' ? 'dark' : 'light');
+        // Redibujar gráficas con los colores del nuevo tema
+        requestAnimationFrame(() => {
+            Object.keys(clipData).forEach(cid => {
+                const cli = clipData[cid];
+                if(cli.pedidos && cli.pedidos.length >= 1) drawTrendChart(cid, cli.pedidos);
+            });
+        });
     }
     // El tema se aplica en onAuthStateChanged al mostrar la app
 </script>
