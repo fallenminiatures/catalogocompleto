@@ -345,6 +345,14 @@
             <!-- BUSCAR Y SELECCIONAR CONTACTOS -->
             <div class="dif-section-title">👥 Contactos</div>
             <input type="text" id="dif-search" placeholder="Filtrar por nombre..." oninput="renderDifContacts()">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                <button class="dif-template-btn dif-cat-btn active" data-cat="todos" onclick="setDifCategoryFilter('todos')">Todos</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="activo" onclick="setDifCategoryFilter('activo')">🟢 Activos</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="frecuente" onclick="setDifCategoryFilter('frecuente')">⭐ Frecuentes</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="promo" onclick="setDifCategoryFilter('promo')">💡 Promo</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="inactivo" onclick="setDifCategoryFilter('inactivo')">🔴 Inactivos</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="descuento" onclick="setDifCategoryFilter('descuento')">🎁 Descuento</button>
+            </div>
             <div class="dif-select-all-row">
                 <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; font-weight:700; font-family:var(--font-title)">
                     <input type="checkbox" id="dif-check-all" onchange="toggleSelectAll(this.checked)" style="accent-color:var(--accent); width:16px; height:16px;">
@@ -582,7 +590,7 @@
                 const pedidos = cli.pedidos;
                 if(pedidos.length < 1) return;
                 drawTrendChart(cid, pedidos);
-                renderInsights(cid, pedidos);
+                renderInsights(`insights-${cid}`, pedidos);
             });
         });
 
@@ -633,8 +641,8 @@
     }
 
     // ── INSIGHTS INTELIGENTES ──
-    function renderInsights(cid, pedidos) {
-        const el = document.getElementById(`insights-${cid}`);
+    function renderInsights(elementId, pedidos) {
+        const el = document.getElementById(elementId);
         if(!el) return;
 
         const totales = pedidos.map(p => p.tot || 0);
@@ -923,6 +931,7 @@
         const cli = clipData[selectedClientId];
         if(!cli) return alert("Selecciona un cliente");
         let msg = `*FALLEN MINIATURES - COTIZACIÓN*\n\n`;
+
         document.querySelectorAll('#tab-calc .item-row').forEach(r => {
             const n = r.querySelector('.item-name').value;
             const q = r.querySelector('.item-qty').value;
@@ -932,7 +941,7 @@
         msg += `*Saldo (40%):* $${lastCalc.sal} MXN\n`;
         msg += `*Envío:* $${lastCalc.ship} MXN\n`;
         if(lastCalc.descMonto > 0) msg += `*Descuento:* -$${lastCalc.descMonto} MXN\n`;
-        msg += `\n*TOTAL:* $${lastCalc.tot} MXN`;
+        msg += `\n*TOTAL:* $${lastCalc.tot} MXN\n\n_— Cypher_`;
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
     }
@@ -945,7 +954,7 @@
         if(!p.pagA) msg += `• *Anticipo Pendiente:* $${p.ade} MXN\n`;
         if(!p.pagS) msg += `• *Saldo Pendiente:* $${p.sal} MXN\n`;
         if(!p.pagE) msg += `• *Envío Pendiente:* $${p.env} MXN\n`;
-        msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_Gracias._`;
+        msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_— Cypher_`;
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
     }
@@ -956,9 +965,9 @@
 
     const TEMPLATES = {
         libre: '',
-        promo: `🎉 *¡Hola {nombre}!*\n\nTenemos una promoción especial para ti 👇\n\n✨ [Describe tu promo aquí]\n\n¡No te la pierdas! Contáctanos para más info. 🎨\n\n_— Fallen Miniatures_`,
-        cobro: `💰 *Hola {nombre}*, te enviamos un recordatorio de pago de tu pedido con Fallen Miniatures.\n\nSi tienes alguna duda, con gusto te ayudamos. 🙌\n\n_— Fallen Miniatures_`,
-        seguimiento: `📦 *¡Hola {nombre}!*\n\nQuería darte una actualización sobre el estado de tu pedido con Fallen Miniatures.\n\n[Escribe aquí la actualización]\n\n¡Gracias por tu confianza! 🎨\n\n_— Fallen Miniatures_`
+        promo: `🎉 *¡Hola {nombre}!*\n\nTenemos una promoción especial para ti 👇\n\n✨ [Describe tu promo aquí]\n\n¡No te la pierdas! Contáctanos para más info. 🎨\n\n_— Cypher_`,
+        cobro: `💰 *Hola {nombre}*, te enviamos un recordatorio de pago de tu pedido.\n\nSi tienes alguna duda, con gusto te ayudamos. 🙌\n\n_— Cypher_`,
+        seguimiento: `📦 *¡Hola {nombre}!*\n\nQuería darte una actualización sobre el estado de tu pedido.\n\n[Escribe aquí la actualización]\n\n¡Gracias por tu confianza! 🎨\n\n_— Cypher_`
     };
 
     let currentTemplate = 'libre';
@@ -972,49 +981,156 @@
         document.getElementById('dif-links-panel').style.display = 'none';
     }
 
+    // ── CATEGORY FILTER ──
+    let difCategoryFilter = 'todos';
+
+    function setDifCategoryFilter(val) {
+        difCategoryFilter = val;
+        document.querySelectorAll('.dif-cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === val));
+        renderDifContacts();
+    }
+
+    // Calcula las etiquetas de un cliente según sus pedidos
+    function getClientTags(pedidos) {
+        if(!pedidos || pedidos.length === 0) return [];
+        const n = pedidos.length;
+        const totales = pedidos.map(p => p.tot || 0);
+        let diasDesdeUltimo = null;
+        const lastPed = pedidos[pedidos.length - 1];
+        if(lastPed.fecha) {
+            const parts = lastPed.fecha.split('/');
+            if(parts.length >= 3) {
+                const d = new Date(parts[2], parts[1]-1, parts[0]);
+                diasDesdeUltimo = Math.floor((Date.now() - d.getTime()) / 86400000);
+            }
+        }
+        const tags = [];
+        if(n >= 5) tags.push('frecuente');
+        if(n >= 3) tags.push('recurrente');
+        if(diasDesdeUltimo !== null && diasDesdeUltimo <= 30)  tags.push('activo');
+        if(diasDesdeUltimo !== null && diasDesdeUltimo > 60 && n >= 2) tags.push('promo');
+        if(diasDesdeUltimo !== null && diasDesdeUltimo > 90)  tags.push('inactivo');
+        if(n >= 5 && diasDesdeUltimo !== null && diasDesdeUltimo <= 60) tags.push('descuento');
+        return tags;
+    }
+
     function renderDifContacts() {
         const wrap = document.getElementById('dif-contacts-wrap');
         if(!wrap) return;
-        const filter = (document.getElementById('dif-search')?.value || '').toLowerCase();
+        const nameFilter = (document.getElementById('dif-search')?.value || '').toLowerCase();
         wrap.innerHTML = '';
 
-        const ids = Object.keys(clipData);
-        // Deduplicar por nombre+tel para no mostrar el mismo cliente múltiples veces
+        // Destruir gráficas mini anteriores
+        Object.keys(chartInstances).forEach(k => {
+            if(k.startsWith('dif-')) { chartInstances[k].destroy(); delete chartInstances[k]; }
+        });
+
+        // Construir lista deduplicada
         const seen = new Set();
         const contacts = [];
-        ids.forEach(cid => {
+        Object.keys(clipData).forEach(cid => {
             const cli = clipData[cid];
             if(!cli.nombre || !cli.tel) return;
             const key = cli.tel.replace(/\D/g,'');
             if(seen.has(key)) return;
             seen.add(key);
-            contacts.push({ cid, nombre: cli.nombre, tel: cli.tel });
+            const tags = getClientTags(cli.pedidos);
+            contacts.push({ cid, nombre: cli.nombre, tel: cli.tel, pedidos: cli.pedidos || [], tags });
         });
 
-        const filtered = filter ? contacts.filter(c => c.nombre.toLowerCase().includes(filter)) : contacts;
+        // Filtrar por nombre
+        let filtered = nameFilter ? contacts.filter(c => c.nombre.toLowerCase().includes(nameFilter)) : contacts;
+
+        // Filtrar por categoría
+        if(difCategoryFilter !== 'todos') {
+            filtered = filtered.filter(c => c.tags.includes(difCategoryFilter));
+        }
 
         if(filtered.length === 0) {
-            wrap.innerHTML = `<div class="dif-empty">No hay contactos${filter ? ' con ese filtro' : ' en la base'}.</div>`;
+            wrap.innerHTML = `<div class="dif-empty">No hay contactos con ese filtro.</div>`;
             updateDifCounter();
             return;
         }
 
         filtered.forEach(c => {
+            const hasPedidos = c.pedidos.length > 0;
+            const canvasId = `dif-chart-${c.cid}`;
+            const insightsId = `dif-ins-${c.cid}`;
+
             const row = document.createElement('div');
             row.className = 'dif-contact-row';
+            row.style.flexDirection = 'column';
+            row.style.alignItems = 'stretch';
             row.dataset.cid = c.cid;
             row.dataset.nombre = c.nombre;
             row.dataset.tel = c.tel;
+
             row.innerHTML = `
-                <input type="checkbox" id="dif-chk-${c.cid}" onchange="onDifCheck(this)">
-                <label for="dif-chk-${c.cid}" style="flex:1; cursor:pointer">
-                    <div class="dif-contact-name">${c.nombre}</div>
-                    <div class="dif-contact-tel">${c.tel}</div>
-                </label>`;
-            row.querySelector('input').addEventListener('change', () => {
-                row.classList.toggle('selected', row.querySelector('input').checked);
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <input type="checkbox" id="dif-chk-${c.cid}" style="accent-color:var(--accent); width:18px; height:18px; flex-shrink:0;">
+                    <label for="dif-chk-${c.cid}" style="flex:1; cursor:pointer;">
+                        <div class="dif-contact-name">${c.nombre}</div>
+                        <div class="dif-contact-tel">${c.tel}</div>
+                    </label>
+                </div>
+                ${hasPedidos ? `
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+                    <div style="position:relative; height:55px;"><canvas id="${canvasId}"></canvas></div>
+                    <div id="${insightsId}" class="trend-insights" style="margin-top:8px;"></div>
+                </div>` : `<div style="font-size:10px; color:var(--text-dim); margin-top:6px; padding-left:30px;">Sin pedidos aún</div>`}`;
+
+            row.querySelector('input').addEventListener('change', function() {
+                row.classList.toggle('selected', this.checked);
+                updateDifCounter();
+                const all = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]');
+                const chk = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]:checked');
+                document.getElementById('dif-check-all').indeterminate = chk.length > 0 && chk.length < all.length;
+                document.getElementById('dif-check-all').checked = chk.length === all.length && all.length > 0;
             });
+
             wrap.appendChild(row);
+        });
+
+        // Dibujar mini gráficas e insights después del render
+        requestAnimationFrame(() => {
+            filtered.forEach(c => {
+                if(c.pedidos.length === 0) return;
+                const canvas = document.getElementById(`dif-chart-${c.cid}`);
+                if(!canvas) return;
+                const labels = c.pedidos.map((p,i) => p.fecha ? p.fecha.split('/').slice(0,2).join('/') : `P${i+1}`);
+                const data   = c.pedidos.map(p => p.tot || 0);
+                const isLight = document.body.classList.contains('light');
+                const gridColor  = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+                const labelColor = isLight ? '#888' : '#555';
+                chartInstances[`dif-${c.cid}`] = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data,
+                            borderColor: '#25D366',
+                            backgroundColor: 'rgba(37,211,102,0.08)',
+                            borderWidth: 1.5,
+                            pointBackgroundColor: '#25D366',
+                            pointRadius: data.length === 1 ? 4 : 2,
+                            tension: 0.35, fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: {
+                            callbacks: { label: ctx => ` $${ctx.parsed.y.toLocaleString()} MXN` }
+                        }},
+                        scales: {
+                            x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 8 }, maxTicksLimit: 5 } },
+                            y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 8 },
+                                callback: v => `$${(v/1000).toFixed(0)}k`
+                            }}
+                        }
+                    }
+                });
+                renderInsights(`dif-ins-${c.cid}`, c.pedidos);
+            });
         });
 
         updateDifCounter();
