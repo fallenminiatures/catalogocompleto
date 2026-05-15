@@ -259,7 +259,6 @@
         .gasto-del { background:none; border:none; color:#555; cursor:pointer; font-size:16px; padding:0 4px; flex-shrink:0; }
         .dash-utilidad-pos { color: var(--accent); }
         .dash-utilidad-neg { color: #ff4757; }
-        .dash-gastos-chart-wrap { position:relative; height:140px; margin-bottom:10px; }
 
 
         /* ── KANBAN ── */
@@ -631,8 +630,6 @@
                 <button onclick="addGasto()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:13px;cursor:pointer;color:#000;flex-shrink:0;">+</button>
             </div>
 
-            <!-- Gráfica de gastos -->
-            <div class="dash-gastos-chart-wrap"><canvas id="dash-gastos-chart"></canvas></div>
 
             <!-- Lista de gastos -->
             <div id="dash-gastos-list" style="max-height:220px;overflow-y:auto;margin-bottom:4px;"></div>
@@ -1675,7 +1672,6 @@
 
     // ── DASHBOARD ──
     let dashChartInstance = null;
-    let dashGastosChartInstance = null;
 
     // Gastos en Firebase
     let gastosData = [];
@@ -1835,34 +1831,7 @@
             });
         }
 
-        // Gráfica horizontal de gastos por descripción (se mantiene abajo)
-        const gastosPorDesc = {};
-        gastosData.forEach(g => {
-            gastosPorDesc[g.desc] = (gastosPorDesc[g.desc] || 0) + (g.monto || 0);
-        });
-        const gLabels = Object.keys(gastosPorDesc);
-        const gData   = gLabels.map(k => gastosPorDesc[k]);
 
-        if(dashGastosChartInstance) dashGastosChartInstance.destroy();
-        const ctxG = document.getElementById('dash-gastos-chart');
-        if(ctxG) {
-            dashGastosChartInstance = new Chart(ctxG, {
-                type: 'bar',
-                data: {
-                    labels: gLabels.length ? gLabels : ['Sin gastos'],
-                    datasets: [{ data: gData.length ? gData : [0], backgroundColor: 'rgba(255,71,87,0.65)', borderRadius: 8, borderSkipped: false }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` $${ctx.parsed.x.toLocaleString()} MXN` }}},
-                    scales: {
-                        x: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}, callback: v=>`$${(v/1000).toFixed(0)}k`} },
-                        y: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}} }
-                    }
-                }
-            });
-        }
 
         // Lista de gastos individuales
         const listEl = document.getElementById('dash-gastos-list');
