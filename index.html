@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIS - Management</title>
+    <title>FALLEN MINIATURES - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -308,6 +308,64 @@
         .hist-item:last-child { border-bottom:none; }
         .hist-item strong { color:#333; }
 
+
+        /* ── SEGUIMIENTO ── */
+        .seg-track-card {
+            background: var(--client-bg); border: 1px solid var(--border);
+            border-radius: 20px; padding: 20px; margin-bottom: 14px;
+            position: relative;
+        }
+        .seg-track-num {
+            font-family: var(--font-title); font-size: 13px; font-weight: 800;
+            letter-spacing: 0.04em; color: var(--text-main); margin-bottom: 4px;
+        }
+        .seg-track-carrier {
+            font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+            font-weight: 700; font-family: var(--font-title); margin-bottom: 12px;
+        }
+        .seg-status-chip {
+            display: inline-block; font-size: 10px; font-weight: 800;
+            font-family: var(--font-title); padding: 5px 12px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;
+        }
+        .seg-status-transit  { background: rgba(255,200,0,0.15); color: #f0b429; }
+        .seg-status-delivered{ background: rgba(37,211,102,0.15); color: #25D366; }
+        .seg-status-pickup   { background: rgba(80,160,255,0.15); color: #50a0ff; }
+        .seg-status-expired  { background: rgba(136,136,136,0.15); color: #888; }
+        .seg-status-undelivered { background: rgba(255,71,87,0.15); color: #ff4757; }
+        .seg-status-default  { background: rgba(136,136,136,0.15); color: #888; }
+        .seg-event {
+            display: flex; gap: 10px; padding: 8px 0;
+            border-bottom: 1px solid var(--border); font-size: 11px;
+        }
+        .seg-event:last-child { border-bottom: none; }
+        .seg-event-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent); margin-top: 3px; flex-shrink: 0;
+        }
+        .seg-event-dot.old { background: var(--text-dim); }
+        .seg-event-time { color: var(--text-dim); min-width: 90px; font-size: 10px; }
+        .seg-event-desc { color: var(--text-main); flex: 1; }
+        .seg-del-btn {
+            position: absolute; top: 14px; right: 14px;
+            background: none; border: none; color: #555; cursor: pointer; font-size: 18px;
+        }
+        .seg-add-row {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .seg-apikey-row {
+            background: var(--badge-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px; margin-bottom: 18px;
+        }
+        .seg-refresh-btn {
+            font-size: 10px; font-weight: 800; font-family: var(--font-title);
+            background: var(--inp-bg); border: 1px solid var(--inp-border);
+            border-radius: 20px; padding: 5px 12px; cursor: pointer;
+            color: var(--text-dim); text-transform: uppercase; margin-left: 8px;
+        }
+        .seg-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .seg-loading { font-size: 11px; color: var(--text-dim); text-align: center; padding: 12px 0; }
+
         /* ── GRÁFICA DE TENDENCIA ── */
         .trend-wrap {
             margin-top: 14px;
@@ -444,6 +502,7 @@
             <button class="nav-btn" id="b-list" onclick="showTab('list')">Base</button>
             <button class="nav-btn" id="b-dif" onclick="showTab('dif')">📢 Blast</button>
             <button class="nav-btn" id="b-dash" onclick="showTab('dash')">📊</button>
+            <button class="nav-btn" id="b-seg" onclick="showTab('seg')">✈️</button>
         </div>
 
         <!-- TAB: COTIZAR -->
@@ -556,8 +615,8 @@
             <div class="dash-kpi-grid" id="dash-kpis"></div>
 
             <!-- INGRESOS POR MES -->
-            <div class="dash-section">📅 Ingresos por mes</div>
-            <div class="dash-chart-wrap"><canvas id="dash-chart"></canvas></div>
+            <div class="dash-section">📅 Ingresos vs Gastos por mes</div>
+            <div class="dash-chart-wrap" style="height:180px;"><canvas id="dash-chart"></canvas></div>
 
             <!-- GASTOS ─────────────────────────── -->
             <div class="dash-section" style="display:flex;align-items:center;justify-content:space-between;">
@@ -601,6 +660,33 @@
 
         </div>
         <!-- FIN TAB DASHBOARD ═══════════════════════════════════ -->
+
+        <!-- TAB: SEGUIMIENTO ✈️ ══════════════════════════════════ -->
+        <div id="tab-seg" style="display:none">
+
+            <!-- API Key (guardada en Firebase) -->
+            <div class="seg-apikey-row">
+                <label class="label" style="margin-bottom:6px">🔑 API Key de 17TRACK</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="password" id="seg-apikey-inp" class="input-box" placeholder="Pega tu API key aquí" style="margin:0; flex:1; font-size:12px;">
+                    <button onclick="saveApiKey()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:12px;cursor:pointer;color:#000;flex-shrink:0;">GUARDAR</button>
+                </div>
+                <div style="font-size:10px; color:var(--text-dim); margin-top:8px;">Tu key se guarda cifrada en Firebase y solo tú puedes verla.</div>
+            </div>
+
+            <!-- Agregar tracking -->
+            <label class="label">➕ Agregar número de tracking</label>
+            <div class="seg-add-row">
+                <input type="text" id="seg-track-inp" class="input-box" placeholder="Ej: 1Z999AA10123456784" style="flex:2; margin:0; text-transform:uppercase;" onkeydown="if(event.key==='Enter')addTracking()">
+                <input type="text" id="seg-track-label" class="input-box" placeholder="Descripción (opcional)" style="flex:2; margin:0;">
+                <button onclick="addTracking()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:18px;cursor:pointer;color:#000;flex-shrink:0;">+</button>
+            </div>
+
+            <!-- Lista de trackings -->
+            <div id="seg-list"></div>
+
+        </div>
+        <!-- FIN TAB SEGUIMIENTO ══════════════════════════════════ -->
 
     </div>
 </div>
@@ -1199,9 +1285,10 @@
     function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('b-'+t).classList.add('active');
-        ['calc','new','list','dif','dash'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
+        ['calc','new','list','dif','dash','seg'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
         if(t === 'dif') renderDifContacts();
         if(t === 'dash') renderDashboard();
+        if(t === 'seg') initSeg();
         // Mostrar búsqueda global en Base y Dashboard
         const gsw = document.getElementById('global-search-wrap');
         if(gsw) gsw.style.display = (t==='list'||t==='dash') ? 'block' : 'none';
@@ -1667,8 +1754,11 @@
         const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
         const labelColor= isLight ? '#888' : '#555';
 
-        // Gráfica ingresos por mes (solo lo cobrado)
+        // ── GRÁFICA AGRUPADA: Ingresos vs Gastos por mes ──
         const byMonth = {};
+        const gastosByMonth = {};
+
+        // Ingresos por mes (cobrados)
         allPedidos.forEach(p => {
             if(!p.fecha) return;
             const parts = p.fecha.split('/');
@@ -1680,9 +1770,30 @@
             if(p.pagE) ing += (p.env || 0);
             byMonth[key] = (byMonth[key] || 0) + ing;
         });
-        const sortedMonths = Object.keys(byMonth).sort();
-        const monthLabels = sortedMonths.map(k => { const [y,m] = k.split('-'); return ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)]+' '+y.slice(2); });
-        const monthData = sortedMonths.map(k => byMonth[k]);
+
+        // Gastos por mes
+        gastosData.forEach(g => {
+            if(!g.fecha) return;
+            // fecha guardada como dd/mm/yyyy o similar
+            const parts = g.fecha.split('/');
+            let key;
+            if(parts.length >= 3) {
+                // día/mes/año
+                key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+            } else {
+                key = new Date().toISOString().slice(0,7).replace('-','') ;
+            }
+            gastosByMonth[key] = (gastosByMonth[key] || 0) + (g.monto || 0);
+        });
+
+        // Unir todos los meses presentes en ingresos o gastos
+        const allMonthKeys = [...new Set([...Object.keys(byMonth), ...Object.keys(gastosByMonth)])].sort();
+        const monthLabels = allMonthKeys.map(k => {
+            const [y,m] = k.split('-');
+            return ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)] + ' ' + y.slice(2);
+        });
+        const ingresoData = allMonthKeys.map(k => byMonth[k] || 0);
+        const gastoData   = allMonthKeys.map(k => gastosByMonth[k] || 0);
 
         if(dashChartInstance) dashChartInstance.destroy();
         const ctx = document.getElementById('dash-chart');
@@ -1691,11 +1802,31 @@
                 type: 'bar',
                 data: {
                     labels: monthLabels.length ? monthLabels : ['Sin datos'],
-                    datasets: [{ data: monthData.length ? monthData : [0], backgroundColor: 'rgba(37,211,102,0.7)', borderRadius: 8, borderSkipped: false }]
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresoData.length ? ingresoData : [0],
+                            backgroundColor: 'rgba(37,211,102,0.75)',
+                            borderRadius: 8, borderSkipped: false,
+                        },
+                        {
+                            label: 'Gastos',
+                            data: gastoData.length ? gastoData : [0],
+                            backgroundColor: 'rgba(255,71,87,0.65)',
+                            borderRadius: 8, borderSkipped: false,
+                        }
+                    ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` $${ctx.parsed.y.toLocaleString()} MXN` }}},
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { color: labelColor, font: { size: 10, family: 'Inter' }, boxWidth: 12, padding: 14 }
+                        },
+                        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()} MXN` }}
+                    },
                     scales: {
                         x: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}} },
                         y: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}, callback: v=>`$${(v/1000).toFixed(0)}k`}}
@@ -1704,7 +1835,7 @@
             });
         }
 
-        // Gráfica de gastos por descripción (barras horizontales agrupadas)
+        // Gráfica horizontal de gastos por descripción (se mantiene abajo)
         const gastosPorDesc = {};
         gastosData.forEach(g => {
             gastosPorDesc[g.desc] = (gastosPorDesc[g.desc] || 0) + (g.monto || 0);
@@ -1783,6 +1914,170 @@
                 <div class="dash-top-name">${clipData[cid]?.nombre || '—'}</div>
                 <div class="dash-top-val">$${clienteTotales[cid].toLocaleString()}</div>
             </div>`).join('') || '<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:20px">Sin datos aún</div>';
+    }
+
+
+    // ════════════════════════════════════════════
+    //  SEGUIMIENTO ✈️ — 17TRACK API
+    // ════════════════════════════════════════════
+    let segApiKey = '';
+    let segTrackings = [];  // [{ num, label, key }]
+
+    // Cargar API key y trackings de Firebase al iniciar
+    db.ref('seg_config/apikey').on('value', snap => {
+        segApiKey = snap.val() || '';
+        if(segApiKey && document.getElementById('seg-apikey-inp')) {
+            document.getElementById('seg-apikey-inp').placeholder = '••••••••••••••••••••••••••••••••';
+        }
+    });
+
+    db.ref('seg_trackings').on('value', snap => {
+        const val = snap.val();
+        segTrackings = val ? Object.entries(val).map(([k,v]) => ({...v, key:k})) : [];
+        if(document.getElementById('tab-seg').style.display !== 'none') renderSegList();
+    });
+
+    function saveApiKey() {
+        const key = document.getElementById('seg-apikey-inp').value.trim();
+        if(!key) return alert('Pega tu API key de 17TRACK');
+        db.ref('seg_config/apikey').set(key);
+        document.getElementById('seg-apikey-inp').value = '';
+        document.getElementById('seg-apikey-inp').placeholder = '••••••••••••••••••••••••••••••••';
+        alert('API Key guardada correctamente ✅');
+    }
+
+    function addTracking() {
+        const num   = document.getElementById('seg-track-inp').value.trim().toUpperCase();
+        const label = document.getElementById('seg-track-label').value.trim() || num;
+        if(!num) return alert('Ingresa un número de tracking');
+        db.ref('seg_trackings').push({ num, label, fecha: new Date().toLocaleDateString('es-MX') });
+        document.getElementById('seg-track-inp').value  = '';
+        document.getElementById('seg-track-label').value = '';
+        // Consultar inmediatamente
+        setTimeout(() => fetchTracking(num), 500);
+    }
+
+    function deleteTracking(key) {
+        if(!confirm('¿Eliminar este tracking?')) return;
+        db.ref(`seg_trackings/${key}`).remove();
+        db.ref(`seg_results/${key}`).remove();
+    }
+
+    function initSeg() {
+        renderSegList();
+        // Refrescar todos al abrir la pestaña
+        segTrackings.forEach(t => fetchTracking(t.num, t.key));
+    }
+
+    async function fetchTracking(num, fbKey) {
+        if(!segApiKey) return;
+        // Buscar la fbKey si no se pasó
+        if(!fbKey) {
+            const match = segTrackings.find(t => t.num === num);
+            if(match) fbKey = match.key;
+        }
+
+        try {
+            const res = await fetch('https://api.17track.net/track/v2.2/gettrackinfo', {
+                method: 'POST',
+                headers: {
+                    '17token': segApiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([{ number: num }])
+            });
+            const data = await res.json();
+            if(data.data?.accepted?.[0]) {
+                const info = data.data.accepted[0];
+                const result = {
+                    status: info.track?.e || 0,
+                    last_event: info.track?.z0 || null,
+                    events: (info.track?.z || []).slice(0, 6),
+                    carrier: info.carrier_code || '',
+                    updated: new Date().toLocaleTimeString('es-MX')
+                };
+                if(fbKey) db.ref(`seg_results/${fbKey}`).set(result);
+                renderSegList();
+            }
+        } catch(e) { console.warn('17TRACK error:', e); }
+    }
+
+    function segStatusLabel(code) {
+        const map = {
+            0:  ['Sin datos', 'seg-status-default'],
+            10: ['En proceso', 'seg-status-default'],
+            20: ['Recolectado', 'seg-status-transit'],
+            30: ['En tránsito', 'seg-status-transit'],
+            35: ['En aduana', 'seg-status-transit'],
+            40: ['Para entrega', 'seg-status-pickup'],
+            41: ['Intento fallido', 'seg-status-undelivered'],
+            42: ['Para recoger', 'seg-status-pickup'],
+            50: ['Entregado ✅', 'seg-status-delivered'],
+            60: ['Regresado', 'seg-status-undelivered'],
+            70: ['No entregado', 'seg-status-undelivered'],
+            80: ['Expirado', 'seg-status-expired'],
+        };
+        return map[code] || ['Desconocido', 'seg-status-default'];
+    }
+
+    function renderSegList() {
+        const wrap = document.getElementById('seg-list');
+        if(!wrap) return;
+        if(segTrackings.length === 0) {
+            wrap.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:30px 0;">Agrega un número de tracking para comenzar.</div>';
+            return;
+        }
+        wrap.innerHTML = '';
+        segTrackings.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'seg-track-card';
+
+            // Resultados guardados en Firebase
+            const resultKey = `seg_results_${t.key}`;
+            const cachedEl = document.getElementById(resultKey);
+
+            const [statusTxt, statusClass] = segStatusLabel(0);
+
+            card.innerHTML = `
+                <button class="seg-del-btn" onclick="deleteTracking('${t.key}')">×</button>
+                <div class="seg-track-num">${t.label !== t.num ? t.label + ' — ' : ''}${t.num}</div>
+                <div class="seg-track-carrier" id="carrier-${t.key}">Cargando...</div>
+                <span class="seg-status-chip seg-status-default" id="status-${t.key}">Actualizando...</span>
+                <button class="seg-refresh-btn" onclick="fetchTracking('${t.num}','${t.key}')">⟳ Refrescar</button>
+                <div id="events-${t.key}" class="seg-loading">Consultando 17TRACK...</div>`;
+
+            wrap.appendChild(card);
+
+            // Cargar resultado guardado de Firebase
+            db.ref(`seg_results/${t.key}`).once('value', snap => {
+                const r = snap.val();
+                if(!r) {
+                    document.getElementById(`events-${t.key}`).innerHTML =
+                        '<div class="seg-loading">Sin datos aún — pulsa ⟳ Refrescar</div>';
+                    document.getElementById(`carrier-${t.key}`).textContent = 'DHL / 17TRACK';
+                    return;
+                }
+                const [sTxt, sCls] = segStatusLabel(r.status);
+                const statusEl = document.getElementById(`status-${t.key}`);
+                if(statusEl) { statusEl.textContent = sTxt; statusEl.className = `seg-status-chip ${sCls}`; }
+                const carrierEl = document.getElementById(`carrier-${t.key}`);
+                if(carrierEl) carrierEl.textContent = `${r.carrier || 'DHL'} · Actualizado: ${r.updated || '—'}`;
+
+                const eventsEl = document.getElementById(`events-${t.key}`);
+                if(eventsEl) {
+                    if(!r.events || r.events.length === 0) {
+                        eventsEl.innerHTML = '<div class="seg-loading">Sin eventos registrados aún</div>';
+                        return;
+                    }
+                    eventsEl.innerHTML = r.events.map((ev, i) => `
+                        <div class="seg-event">
+                            <div class="seg-event-dot${i > 0 ? ' old' : ''}"></div>
+                            <div class="seg-event-time">${ev.a || '—'}</div>
+                            <div class="seg-event-desc">${ev.z || ev.c || '—'}${ev.l ? ' · ' + ev.l : ''}</div>
+                        </div>`).join('');
+                }
+            });
+        });
     }
 
     // ── THEME TOGGLE ──
