@@ -40,87 +40,14 @@
             --ship-border: #333;
         }
 
-        body.light {
-            --bg: #f0f2f5;
-            --card-bg: #ffffff;
-            --border: #e0e0e0;
-            --text-main: #1a1a1a;
-            --text-dim: #888;
-            --inp-bg: #f8f9fa;
-            --inp-border: #dde1e7;
-            --inp-color: #1a1a1a;
-            --nav-bg: #e8eaed;
-            --res-bg: #f0faf4;
-            --res-text: #444;
-            --res-total: #111;
-            --client-bg: #fafafa;
-            --badge-bg: #f5f5f5;
-            --badge-border: #e0e0e0;
-            --badge-color: #999;
-            --search-bg: #f8f9fa;
-            --search-border: #dde1e7;
-            --catalog-bg: #fff;
-            --catalog-border: #dde1e7;
-            --catalog-item-border: #eee;
-            --catalog-color: #222;
-            --ship-border: #dde1e7;
-        }
-
-        /* ── FIREBASE LOGIN SCREEN ── */
-        #fb-login-screen {
-            position: fixed; inset: 0; z-index: 9999;
-            background: #0a0a0a;
-            display: flex; align-items: center; justify-content: center; padding: 20px;
-        }
-        .fb-login-box { width: 100%; max-width: 360px; text-align: center; }
-        .fb-login-title {
-            font-family: var(--font-title); font-size: 32px; font-weight: 900;
-            color: #e0e0e0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: -0.02em;
-        }
-        .fb-login-title span { color: var(--accent); }
-        .fb-login-sub { font-size: 12px; color: #555; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.1em; }
-        .fb-login-card {
-            background: #141414; border: 1px solid #222; border-radius: 20px; padding: 26px 22px;
-        }
-        .fb-inp {
-            width: 100%; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 12px;
-            padding: 13px 14px; color: #fff; font-size: 14px; outline: none;
-            font-family: var(--font-main); margin-bottom: 12px; box-sizing: border-box;
-            transition: border 0.2s;
-        }
-        .fb-inp:focus { border-color: var(--accent); }
-        .fb-btn {
-            width: 100%; padding: 14px; border: none; border-radius: 12px;
-            background: var(--accent); color: #000; font-family: var(--font-title);
-            font-size: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase;
-            transition: opacity 0.2s; margin-top: 4px;
-        }
-        .fb-btn:hover { opacity: 0.88; }
-        .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .fb-err { font-size: 12px; color: #ff6b6b; min-height: 18px; margin-top: 8px; text-align: center; }
-        .fb-eye {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-60%);
-            background: none; border: none; color: #555; cursor: pointer; font-size: 16px; padding: 0;
-        }
-
-        /* ── TOGGLE BUTTON ── */
-        .theme-toggle {
-            position: fixed; bottom: 24px; right: 24px; z-index: 999;
-            width: 50px; height: 50px; border-radius: 50%; border: none;
-            background: var(--card-bg); box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            cursor: pointer; font-size: 22px; display: flex; align-items: center;
-            justify-content: center; transition: transform 0.2s, background 0.3s;
-            border: 1px solid var(--border);
-        }
-        .theme-toggle:hover { transform: scale(1.12); }
-
+        
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); font-family: var(--font-main); color: var(--text-main); line-height: 1.5; transition: background 0.3s, color 0.3s; }
         .card { transition: background 0.3s, border-color 0.3s; }
         
         .wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .card { width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
-        
+
         h2 { font-family: var(--font-title); font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; text-align: center; margin-bottom: 5px; font-size: 26px; }
         .rate-info { text-align: center; font-size: 11px; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; font-weight: 700; cursor: pointer; border: 1px solid #333; padding: 8px; border-radius: 10px; }
 
@@ -139,13 +66,15 @@
         .status-badge { flex: 1; text-align: center; padding: 10px 5px; border-radius: 10px; font-size: 8px; font-weight: 900; border: 1px solid var(--badge-border); background: var(--badge-bg); color: var(--badge-color); cursor: pointer; font-family: var(--font-title); transition: background 0.2s; }
         .status-paid { background: var(--accent) !important; color: #000 !important; }
 
+        .status-badge { flex: 1; text-align: center; padding: 10px 5px; border-radius: 10px; font-size: 8px; font-weight: 900; border: 1px solid var(--badge-border); background: var(--badge-bg); color: var(--badge-color); cursor: pointer; font-family: var(--font-title); transition: background 0.2s; }
+        .status-paid { background: var(--accent) !important; color: #000 !important; }
+
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 1000; overflow-y: auto; padding: 90px 25px; color: #111; }
         .close-overlay { position: fixed; top: 20px; right: 20px; background: #111; color: #fff; border: none; padding: 14px 24px; border-radius: 50px; font-weight: 700; font-size: 12px; cursor: pointer; z-index: 1010; font-family: var(--font-title); }
         
         .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
-
 
         /* ── ALERTA ROJA ANTICIPO ── */
         .client-item.alerta-anticipo {
@@ -260,7 +189,6 @@
         .dash-utilidad-pos { color: var(--accent); }
         .dash-utilidad-neg { color: #ff4757; }
 
-
         /* ── KANBAN ── */
         .kanban-wrap {
             display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;
@@ -306,24 +234,6 @@
         }
         .hist-item:last-child { border-bottom:none; }
         .hist-item strong { color:#333; }
-
-        /* ── HISTORIAL DE CAMBIOS ── */
-        .hist-wrap {
-            background:#f5f5f5; border-radius:12px; padding:12px 14px;
-            margin-top:14px; border:1px solid #e0e0e0;
-        }
-        .hist-title {
-            font-size:10px; font-weight:900; font-family:var(--font-title);
-            text-transform:uppercase; letter-spacing:0.08em; color:#888;
-            margin-bottom:8px;
-        }
-        .hist-item {
-            font-size:10px; color:#666; padding:6px 0;
-            border-bottom:1px solid #eee; line-height:1.5;
-        }
-        .hist-item:last-child { border-bottom:none; }
-        .hist-item strong { color:#333; }
-
 
         /* ── SEGUIMIENTO ── */
         .seg-track-card {
@@ -381,34 +291,6 @@
         }
         .seg-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
         .seg-loading { font-size: 11px; color: var(--text-dim); text-align: center; padding: 12px 0; }
-
-        /* ── GRÁFICA DE TENDENCIA ── */
-        .trend-wrap {
-            margin-top: 14px;
-            background: var(--badge-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px 14px 10px;
-        }
-        .trend-title {
-            font-family: var(--font-title); font-size: 9px; font-weight: 900;
-            text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
-            margin-bottom: 8px;
-        }
-        .trend-canvas-wrap { position: relative; height: 70px; }
-        .trend-insights {
-            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
-        }
-        .trend-chip {
-            font-size: 9px; font-weight: 800; font-family: var(--font-title);
-            padding: 4px 9px; border-radius: 20px; text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .chip-green  { background: rgba(37,211,102,0.15); color: #25D366; }
-        .chip-yellow { background: rgba(255,200,0,0.15);  color: #f0b429; }
-        .chip-red    { background: rgba(255,71,87,0.15);  color: #ff4757; }
-        .chip-blue   { background: rgba(80,160,255,0.15); color: #50a0ff; }
-        .chip-gray   { background: rgba(136,136,136,0.15);color: #888; }
 
         /* ── DIFUSIÓN TAB ── */
         .dif-contact-row {
@@ -494,7 +376,7 @@
   </div>
 </div>
 
-<div id="overlay">
+    <div id="overlay">
     <button class="close-overlay" onclick="closeOverlay()">CERRAR Y GUARDAR</button>
     <div id="overlay-content"></div>
 </div>
@@ -504,7 +386,7 @@
     <div class="card">
         <h2>FALLEN <span style="color:var(--accent)">MINIATURES</span></h2>
         <div class="rate-info" id="rate-display" onclick="updateManualRate()">Sincronizando...</div>
-
+        
         <!-- BÚSQUEDA GLOBAL -->
         <div id="global-search-wrap" style="display:none">
             <span class="global-search-icon">🔍</span>
@@ -518,7 +400,7 @@
             <button class="nav-btn" id="b-list" onclick="showTab('list')">Base</button>
             <button class="nav-btn" id="b-dif" onclick="showTab('dif')">📢 Blast</button>
             <button class="nav-btn" id="b-dash" onclick="showTab('dash')">📊</button>
-
+            <button class="nav-btn" id="b-seg" onclick="showTab('seg')">✈️</button>
         </div>
 
         <!-- TAB: COTIZAR -->
@@ -673,10 +555,38 @@
 
         </div>
         <!-- FIN TAB DASHBOARD ═══════════════════════════════════ -->
+
+        <!-- TAB: SEGUIMIENTO ✈️ ══════════════════════════════════ -->
+        <div id="tab-seg" style="display:none">
+
+            <!-- API Key (guardada en Firebase) -->
+            <div class="seg-apikey-row">
+                <label class="label" style="margin-bottom:6px">🔑 API Key de 17TRACK</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="password" id="seg-apikey-inp" class="input-box" placeholder="FF2D945EB67914B3CAF6A4F943DCB681" style="margin:0; flex:1; font-size:12px;">
+                    <button onclick="saveApiKey()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:12px;cursor:pointer;color:#000;flex-shrink:0;">GUARDAR</button>
+                </div>
+                <div style="font-size:10px; color:var(--text-dim); margin-top:8px;">Tu key se guarda cifrada en Firebase y solo tú puedes verla.</div>
+            </div>
+
+            <!-- Agregar tracking -->
+            <label class="label">➕ Agregar número de tracking</label>
+            <div class="seg-add-row">
+                <input type="text" id="seg-track-inp" class="input-box" placeholder="Ej: 1Z999AA10123456784" style="flex:2; margin:0; text-transform:uppercase;" onkeydown="if(event.key==='Enter')addTracking()">
+                <input type="text" id="seg-track-label" class="input-box" placeholder="Descripción (opcional)" style="flex:2; margin:0;">
+                <button onclick="addTracking()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:18px;cursor:pointer;color:#000;flex-shrink:0;">+</button>
+            </div>
+
+            <!-- Lista de trackings -->
+            <div id="seg-list"></div>
+
         </div>
+        <!-- FIN TAB SEGUIMIENTO ══════════════════════════════════ -->
+
+    </div>
 </div>
 
-<script>
+    <script>
     const CATALOG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrUSvEa7fBbwChq6ycG3JUGUGVzQ1AQbYCDV1PsOlilKy5X-px_PkuIiHTl5IZ76xQ1khOP_9MKlKR/pub?gid=751903595&single=true&output=csv';
     const firebaseConfig = {
         apiKey: "AIzaSyDUYD_gMxeemWt-dfJrPtN8njzmV7HoJ48",
@@ -690,7 +600,7 @@
 
     let currentRate = 18.00, clipData = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = null;
 
-    // ── FIREBASE AUTH ────────────────────────────
+        // ── FIREBASE AUTH ────────────────────────────
     function fbLogin(){
       const email = document.getElementById('fb-email').value.trim();
       const pass  = document.getElementById('fb-pass').value;
@@ -725,7 +635,7 @@
       auth.signOut();
     }
 
-    auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(user => {
       if(user){
         document.getElementById('fb-login-screen').style.display = 'none';
         document.getElementById('main-app-wrapper').style.display = '';
@@ -741,7 +651,7 @@
       }
     });
 
-    // 1. Catálogo y Tipo de Cambio
+        // 1. Catálogo y Tipo de Cambio
     async function fetchCatalog() {
         try {
             const response = await fetch(CATALOG_URL, { cache: "no-store" });
@@ -768,9 +678,9 @@
     function updateRateUI() { 
         document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(2)} MXN`; 
         calculate(); 
-    }
+        }
 
-    function updateManualRate() { 
+        function updateManualRate() { 
         let n = prompt("Cambio USD:", currentRate); 
         if(n){ currentRate = parseFloat(n); updateRateUI(); } 
     }
@@ -811,9 +721,9 @@
             document.getElementById('r-tot').innerText = `TOTAL: $${lastCalc.tot} MXN`;
             document.getElementById('res-div').style.display = 'block';
         }
-    }
+        }
 
-    // 3. RECUPERACIÓN DE DATOS
+        // 3. RECUPERACIÓN DE DATOS
     const chartInstances = {};
 
     db.ref('clientes_v3').on('value', snap => {
@@ -838,7 +748,7 @@
             const cli = clientsWithOrders[cid];
             const pedidos = cli.pedidos;
 
-           // --- Detectar alerta de anticipo (+3 días sin pagar) ---
+            // --- Detectar alerta de anticipo (+3 días sin pagar) ---
             const DIAS_ALERTA = 3;
             let hayAlerta = false;
             pedidos.forEach(p => {
@@ -870,6 +780,7 @@
                         if(dias >= DIAS_ALERTA) alertaBadge = `<span class="alerta-badge">🔴 Anticipo pendiente ${dias}d</span>`;
                     }
                 }
+
                 pedidosHTML += `
                 ${alertaBadge}
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
@@ -919,37 +830,15 @@
                 const cli = clientsWithOrders[cid];
                 const pedidos = cli.pedidos;
                 if(pedidos.length < 1) return;
-                drawTrendChartWithHistory(cid, pedidos);
+                drawTrendChart(cid, pedidos);
+                renderInsights(`insights-${cid}`, pedidos);
             });
         });
 
         renderDifContacts();
     });
 
-    // ── GRÁFICA DE TENDENCIA (con historial archivado) ──
-    // Carga historial adicional de pedidos archivados y los fusiona con los actuales
-    function drawTrendChartWithHistory(cid, pedidosActuales) {
-        var cli = clipData[cid];
-        if(!cli || !cli.tel) { drawTrendChart(cid, pedidosActuales); return; }
-        var telKey = cli.tel.replace(/\D/g, '');
-        if(!telKey) { drawTrendChart(cid, pedidosActuales); return; }
-        db.ref('historial_clientes_v1/' + telKey).once('value', function(snap) {
-            var historial = snap.val();
-            var pedidosArchivados = historial ? Object.values(historial) : [];
-            // Combinar y deduplicar por fecha+monto
-            var combined = pedidosArchivados.concat(pedidosActuales);
-            // Ordenar por fecha
-            combined.sort(function(a, b) {
-                var fa = a.fecha ? a.fecha.split('/').reverse().join('') : '';
-                var fb = b.fecha ? b.fecha.split('/').reverse().join('') : '';
-                return fa.localeCompare(fb);
-            });
-            drawTrendChart(cid, combined);
-            renderInsights('insights-' + cid, combined);
-        });
-    }
-
-    // ── GRÁFICA DE TENDENCIA ──
+        // ── GRÁFICA DE TENDENCIA ──
     function drawTrendChart(cid, pedidos) {
         const canvas = document.getElementById(`chart-${cid}`);
         if(!canvas) return;
@@ -990,7 +879,9 @@
                 }
             }
         });
-    }// ── INSIGHTS INTELIGENTES ──
+        }
+
+        / ── INSIGHTS INTELIGENTES ──
     function renderInsights(elementId, pedidos) {
         const el = document.getElementById(elementId);
         if(!el) return;
@@ -1023,7 +914,8 @@
                 tendenciaChip = `<span class="trend-chip chip-red">📉 Bajando</span>`;
             else
                 tendenciaChip = `<span class="trend-chip chip-blue">➡️ Estable</span>`;
-    }
+        }
+
         // Frecuencia
         let freqChip = '';
         if(n === 1) freqChip = `<span class="trend-chip chip-gray">1er pedido</span>`;
@@ -1054,9 +946,9 @@
             <span class="trend-chip chip-gray">Total: $${totalHistorico.toLocaleString()}</span>
             <span class="trend-chip chip-gray">Prom: $${ticketProm.toLocaleString()}</span>
         `;
-    }
+        }
 
-    async function saveOrder() {
+        async function saveOrder() {
         if(!selectedClientId) return alert("Selecciona un cliente");
         let items = [];
         let itemsStr = "";
@@ -1084,9 +976,9 @@
             document.getElementById('search-input').value = "";
             selectedClientId = "";
         } catch (error) { alert("Error al guardar pedido"); }
-    }
+        }
 
-    // 4. Overlay y Edición
+        // 4. Overlay y Edición
     function openOverlay(cid, idx) {
         activeCardId = {cid, idx};
         const cli = clipData[cid];
@@ -1100,7 +992,7 @@
                 <input type="email" id="edit-cli-mail" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.email || ''}">
                 <label class="label" style="color:#666">DIRECCIÓN</label>
                 <textarea id="edit-cli-dir" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:60px; resize:none">${cli.direccion || ''}</textarea>
-            </div>
+        </div>
             <div id="items-edit-single">`;
         p.items.forEach(it => {
             html += `<div class="edit-row">
@@ -1116,6 +1008,7 @@
                 <div style="display:flex; gap:10px">
                     <div style="flex:1">
                         <label class="label" style="color:#666">ADELANTO (60%)</label>
+
                         <input type="number" id="edit-ade-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.ade}" oninput="syncManualMoney()">
                     </div>
                     <div style="flex:1">
@@ -1147,9 +1040,6 @@
         document.getElementById('overlay-content').innerHTML = html;
         document.getElementById('overlay').style.display = 'block';
     }
-    document.getElementById('overlay-content').innerHTML = html;
-        document.getElementById('overlay').style.display = 'block';
-    }
 
     function overlayRecalc() {
         if(!activeCardId) return;
@@ -1172,9 +1062,9 @@
         document.getElementById('edit-ade-single').value = p.ade;
         document.getElementById('edit-sal-single').value = p.sal;
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
-    }
+        }
 
-    function syncManualMoney() {
+        function syncManualMoney() {
         if(!activeCardId) return;
         const {cid, idx} = activeCardId;
         const p = clipData[cid].pedidos[idx];
@@ -1184,6 +1074,7 @@
         p.tot = p.ade + p.sal + p.env;
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
     }
+
     function closeOverlay() {
         if(activeCardId){
             const {cid, idx} = activeCardId;
@@ -1204,7 +1095,7 @@
                     env_antes: p.env,
                     tot_nuevo: newTot,
                 });
-            }
+        }
 
             clipData[cid].tel = document.getElementById('edit-cli-tel').value;
             clipData[cid].email = document.getElementById('edit-cli-mail').value;
@@ -1216,7 +1107,7 @@
         activeCardId = null;
     }
 
-    // 5. Auxiliares
+// 5. Auxiliares
     function filterClients() {
         const val = document.getElementById('search-input').value.toLowerCase();
         const res = document.getElementById('search-results'); 
@@ -1232,6 +1123,7 @@
                 d.innerText=clipData[id].nombre;
                 d.onclick=()=>{ 
                     selectedClientId=id; 
+
                     document.getElementById('search-input').value=clipData[id].nombre; 
                     res.style.display='none'; calculate(); 
                 };
@@ -1265,9 +1157,9 @@
             });
             resultsDiv.style.display = "block";
         }
-    }
+        }
 
-    async function saveClient() {
+        async function saveClient() {
         const n = document.getElementById('c-nom').value;
         const t = document.getElementById('c-tel').value;
         const m = document.getElementById('c-mail').value;
@@ -1285,14 +1177,15 @@
             document.getElementById('c-dir').value = "";
             showTab('calc');
         } catch (e) { alert("Error al guardar cliente"); }
-    }
+        }
 
-    function showTab(t) { 
+        function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('b-'+t).classList.add('active');
-        ['calc','new','list','dif','dash'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
+        ['calc','new','list','dif','dash','seg'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
         if(t === 'dif') renderDifContacts();
         if(t === 'dash') renderDashboard();
+        if(t === 'seg') initSeg();
         // Mostrar búsqueda global en Base y Dashboard
         const gsw = document.getElementById('global-search-wrap');
         if(gsw) gsw.style.display = (t==='list'||t==='dash') ? 'block' : 'none';
@@ -1300,32 +1193,10 @@
     }
 
     function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
-    function removeOrderCard(cid, idx) {
-        if(!confirm('¿Borrar pedido?')) return;
-        var cli = clipData[cid];
-        var pedido = cli.pedidos[idx];
-        // Archivar el pedido en historial persistente por teléfono
-        // así el historial de compras sobrevive aunque se borre el cliente
-        if(cli.tel && pedido) {
-            var telKey = cli.tel.replace(/\D/g, '');
-            if(telKey) {
-                var archivado = {
-                    fecha: pedido.fecha || '',
-                    tot: pedido.tot || 0,
-                    ade: pedido.ade || 0,
-                    sal: pedido.sal || 0,
-                    env: pedido.env || 0,
-                    nombre: cli.nombre || ''
-                };
-                db.ref('historial_clientes_v1/' + telKey).push(archivado);
-            }
-        }
-        clipData[cid].pedidos.splice(idx, 1);
-        db.ref('clientes_v3/' + cid + '/pedidos').set(clipData[cid].pedidos);
-    }
+    function removeOrderCard(cid, idx) { if(confirm("¿Borrar pedido?")) { clipData[cid].pedidos.splice(idx, 1); db.ref(`clientes_v3/${cid}/pedidos`).set(clipData[cid].pedidos); } }
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
 
-    function addItemTab(id) {
+        function addItemTab(id) {
         const div = document.createElement('div'); div.className = 'item-row edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
         document.getElementById(id).appendChild(div);
@@ -1334,9 +1205,9 @@
         const div = document.createElement('div'); div.className = 'edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById('items-edit-single').appendChild(div);
-    }
+        }
 
-    // ── WHATSAPP FUNCTIONS ──
+        // ── WHATSAPP FUNCTIONS ──
     function sendWA() {
         const cli = clipData[selectedClientId];
         if(!cli) return alert("Selecciona un cliente");
@@ -1375,6 +1246,7 @@
             setTimeout(() => btn.textContent = '📋', 2000);
         }).catch(() => alert('No se pudo copiar al portapapeles'));
     }
+
     function sendCobranza(cid, idx) {
         const cli = clipData[cid];
         const p = cli.pedidos[idx];
@@ -1386,9 +1258,9 @@
         msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_— Cypher_`;
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
+        }
 
-    // ════════════════════════════════════════════
+        // ════════════════════════════════════════════
     //  DIFUSIÓN / BLAST
     // ════════════════════════════════════════════
 
@@ -1408,9 +1280,9 @@
         document.getElementById('dif-msg').value = TEMPLATES[key];
         // Ocultar panel de links al cambiar plantilla
         document.getElementById('dif-links-panel').style.display = 'none';
-    }
+        }
 
-    // ── CATEGORY FILTER ──
+        // ── CATEGORY FILTER ──
     let difCategoryFilter = 'todos';
 
     function setDifCategoryFilter(val) {
@@ -1448,6 +1320,12 @@
         if(!wrap) return;
         const nameFilter = (document.getElementById('dif-search')?.value || '').toLowerCase();
         wrap.innerHTML = '';
+
+        // Destruir gráficas mini anteriores
+        Object.keys(chartInstances).forEach(k => {
+            if(k.startsWith('dif-')) { chartInstances[k].destroy(); delete chartInstances[k]; }
+        });
+
         // Construir lista deduplicada
         const seen = new Set();
         const contacts = [];
@@ -1501,6 +1379,7 @@
                     <div style="position:relative; height:55px;"><canvas id="${canvasId}"></canvas></div>
                     <div id="${insightsId}" class="trend-insights" style="margin-top:8px;"></div>
                 </div>` : `<div style="font-size:10px; color:var(--text-dim); margin-top:6px; padding-left:30px;">Sin pedidos aún</div>`}`;
+
             row.querySelector('input').addEventListener('change', function() {
                 row.classList.toggle('selected', this.checked);
                 updateDifCounter();
@@ -1534,6 +1413,9 @@
                             backgroundColor: 'rgba(37,211,102,0.08)',
                             borderWidth: 1.5,
                             pointBackgroundColor: '#25D366',
+                            backgroundColor: 'rgba(37,211,102,0.08)',
+                            borderWidth: 1.5,
+                            pointBackgroundColor: '#25D366',
                             pointRadius: data.length === 1 ? 4 : 2,
                             tension: 0.35, fill: true,
                         }]
@@ -1558,7 +1440,7 @@
         updateDifCounter();
     }
 
-    function onDifCheck(checkbox) {
+        function onDifCheck(checkbox) {
         const row = checkbox.closest('.dif-contact-row');
         row.classList.toggle('selected', checkbox.checked);
         updateDifCounter();
@@ -1600,6 +1482,10 @@
         const wrap  = document.getElementById('dif-links-wrap');
         wrap.innerHTML = '';
 
+        const panel = document.getElementById('dif-links-panel');
+        const wrap  = document.getElementById('dif-links-wrap');
+        wrap.innerHTML = '';
+
         selected.forEach(c => {
             const personalMsg = msg.replace(/\{nombre\}/gi, c.nombre.split(' ')[0]);
             const tel = c.tel.replace(/\D/g, '');
@@ -1620,24 +1506,21 @@
 
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ── ESTADO DEL PEDIDO ──
+    function cycleEstado(cid, idx) {
+        const estados = ['proceso', 'listo', 'enviado'];
+        const p = clipData[cid].pedidos[idx];
+        const current = p.estado || 'proceso';
+        const next = estados[(estados.indexOf(current) + 1) % estados.length];
+        db.ref(`clientes_v3/${cid}/pedidos/${idx}/estado`).set(next);
     }
 
-// ── ESTADO DEL PEDIDO ──
-    function cycleEstado(cid, idx) {
-        var estados = ['proceso', 'listo', 'enviado'];
-        var p = clipData[cid].pedidos[idx];
-        var current = p.estado || 'proceso';
-        var next = estados[(estados.indexOf(current) + 1) % estados.length];
-        var updates = {};
-        updates['clientes_v3/' + cid + '/pedidos/' + idx + '/estado'] = next;
-        // Al marcar como enviado, guardar la fecha de envío para auto-ocultar en 3 días
-        if(next === 'enviado') {
-            updates['clientes_v3/' + cid + '/pedidos/' + idx + '/fechaEnvio'] = new Date().toISOString();
-        } else {
-            // Si retrocede de enviado, limpiar la fecha
-            updates['clientes_v3/' + cid + '/pedidos/' + idx + '/fechaEnvio'] = null;
-        }
-        db.ref().update(updates);
+    // ── NOTAS RÁPIDAS ──
+    function saveNota(cid) {
+        const val = document.getElementById(`nota-${cid}`)?.value || '';
+        db.ref(`clientes_v3/${cid}/nota`).set(val);
     }
 
     // ── BÚSQUEDA GLOBAL ──
@@ -1673,9 +1556,9 @@
                 <div class="gr-item-sub">${h.sub}</div>
             </div>`).join('');
         res.style.display = 'block';
-    }
+        }
 
-    function globalSearchGo(cid, idx) {
+        function globalSearchGo(cid, idx) {
         document.getElementById('global-results').style.display = 'none';
         document.getElementById('global-search').value = '';
         showTab('list');
@@ -1691,9 +1574,9 @@
                 }
             });
         });
-    }
+        }
 
-    // ── DASHBOARD ──
+        // ── DASHBOARD ──
     let dashChartInstance = null;
 
     // Gastos en Firebase
@@ -1737,7 +1620,7 @@
             cli.pedidos.forEach(p => {
                 allPedidos.push({ ...p, clienteNombre: cli.nombre, cid });
 
-                // Ingresos reales = solo lo marcado como pagado en las tarjetas
+        // Ingresos reales = solo lo marcado como pagado en las tarjetas
                 let ingresoPedido = 0;
                 if(p.pagA) ingresoPedido += (p.ade || 0);
                 if(p.pagS) ingresoPedido += (p.sal || 0);
@@ -1761,7 +1644,7 @@
         // Clientes = solo los que tienen al menos una tarjeta en Base
         const totalClientes = clientesConTarjetas.size;
 
-    // KPIs
+        // KPIs
         const utilClass = utilidad >= 0 ? 'dash-utilidad-pos' : 'dash-utilidad-neg';
         document.getElementById('dash-kpis').innerHTML = `
             <div class="dash-kpi"><div class="dash-kpi-val">$${(totalIngresos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Cobrado</div></div>
@@ -1790,7 +1673,7 @@
             byMonth[key] = (byMonth[key] || 0) + ing;
         });
 
-    // Gastos por mes
+        // Gastos por mes
         gastosData.forEach(g => {
             if(!g.fecha) return;
             // fecha guardada como dd/mm/yyyy o similar
@@ -1852,7 +1735,9 @@
                     }
                 }
             });
-    }
+        }
+
+
         // Lista de gastos individuales
         const listEl = document.getElementById('dash-gastos-list');
         if(listEl) {
@@ -1870,23 +1755,15 @@
         }
 
         // Kanban — pedidos en cola
-        // Las tarjetas "enviado" con más de 3 días no se muestran en Kanban
-        // pero SUS DATOS siguen en allPedidos para las gráficas financieras
-        var DIAS_OCULTAR_ENVIADO = 3;
-        var ahora = Date.now();
-        var kanbanCols = { proceso:[], listo:[], enviado:[] };
-        Object.keys(clipData).forEach(function(cid) {
-            var cli = clipData[cid];
+        const kanbanCols = { proceso:[], listo:[], enviado:[] };
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
             if(!cli.pedidos) return;
-            cli.pedidos.forEach(function(p, idx) {
-                var estado = p.estado || 'proceso';
-                if(kanbanCols[estado] === undefined) return;
-                // Si está enviado, verificar si ya pasaron 3 días
-                if(estado === 'enviado' && p.fechaEnvio) {
-                    var diasTranscurridos = (ahora - new Date(p.fechaEnvio).getTime()) / 86400000;
-                    if(diasTranscurridos >= DIAS_OCULTAR_ENVIADO) return; // no mostrar en Kanban
+            cli.pedidos.forEach((p, idx) => {
+                const estado = p.estado || 'proceso';
+                if(kanbanCols[estado] !== undefined) {
+                    kanbanCols[estado].push({ cid, idx, nombre: cli.nombre, tot: p.tot, fecha: p.fecha });
                 }
-                kanbanCols[estado].push({ cid: cid, idx: idx, nombre: cli.nombre, tot: p.tot, fecha: p.fecha });
             });
         });
         ['proceso','listo','enviado'].forEach(col => {
@@ -1902,7 +1779,7 @@
                 : `<div class="kanban-empty">Vacío</div>`;
         });
 
-    // Top clientes
+        // Top clientes
         const topClientes = Object.keys(clienteTotales)
             .sort((a,b) => clienteTotales[b]-clienteTotales[a])
             .slice(0,5);
@@ -1914,7 +1791,170 @@
     }
 
 
-    // ── THEME TOGGLE ──
+    // ════════════════════════════════════════════
+    //  SEGUIMIENTO ✈️ — 17TRACK API
+    // ════════════════════════════════════════════
+    let segApiKey = 'FF2D945EB67914B3CAF6A4F943DCB681';
+    let segTrackings = [];  // [{ num, label, key }]
+
+    // Cargar API key y trackings de Firebase al iniciar
+    db.ref('seg_config/apikey').on('value', snap => {
+        segApiKey = snap.val() || '';
+        if(segApiKey && document.getElementById('seg-apikey-inp')) {
+            document.getElementById('seg-apikey-inp').placeholder = '••••••••••••••••••••••••••••••••';
+        }
+    });
+
+        db.ref('seg_trackings').on('value', snap => {
+        const val = snap.val();
+        segTrackings = val ? Object.entries(val).map(([k,v]) => ({...v, key:k})) : [];
+        if(document.getElementById('tab-seg').style.display !== 'none') renderSegList();
+    });
+
+    function saveApiKey() {
+        const key = document.getElementById('seg-apikey-inp').value.trim();
+        if(!key) return alert('FF2D945EB67914B3CAF6A4F943DCB681');
+        db.ref('seg_config/apikey').set(key);
+        document.getElementById('seg-apikey-inp').value = '';
+        document.getElementById('seg-apikey-inp').placeholder = '••••••••••••••••••••••••••••••••';
+        alert('API Key guardada correctamente ✅');
+    }
+
+        function addTracking() {
+        const num   = document.getElementById('seg-track-inp').value.trim().toUpperCase();
+        const label = document.getElementById('seg-track-label').value.trim() || num;
+        if(!num) return alert('Ingresa un número de tracking');
+        db.ref('seg_trackings').push({ num, label, fecha: new Date().toLocaleDateString('es-MX') });
+        document.getElementById('seg-track-inp').value  = '';
+        document.getElementById('seg-track-label').value = '';
+        // Consultar inmediatamente
+        setTimeout(() => fetchTracking(num), 500);
+    }
+
+    function deleteTracking(key) {
+        if(!confirm('¿Eliminar este tracking?')) return;
+        db.ref(`seg_trackings/${key}`).remove();
+        db.ref(`seg_results/${key}`).remove();
+    }
+
+    function initSeg() {
+        renderSegList();
+        // Refrescar todos al abrir la pestaña
+        segTrackings.forEach(t => fetchTracking(t.num, t.key));
+    }
+
+    async function fetchTracking(num, fbKey) {
+        if(!segApiKey) return;
+        // Buscar la fbKey si no se pasó
+        if(!fbKey) {
+            const match = segTrackings.find(t => t.num === num);
+            if(match) fbKey = match.key;
+        }
+
+        try {
+            const res = await fetch('https://api.17track.net/track/v2.2/gettrackinfo', {
+                method: 'POST',
+                headers: {
+                    '17token': segApiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([{ number: num }])
+            });
+            const data = await res.json();
+            if(data.data?.accepted?.[0]) {
+                const info = data.data.accepted[0];
+                const result = {
+                    status: info.track?.e || 0,
+                    last_event: info.track?.z0 || null,
+                    events: (info.track?.z || []).slice(0, 6),
+                    carrier: info.carrier_code || '',
+                    updated: new Date().toLocaleTimeString('es-MX')
+                };
+                if(fbKey) db.ref(`seg_results/${fbKey}`).set(result);
+                renderSegList();
+            }
+        } catch(e) { console.warn('17TRACK error:', e); }
+            }
+
+        function segStatusLabel(code) {
+        const map = {
+            0:  ['Sin datos', 'seg-status-default'],
+            10: ['En proceso', 'seg-status-default'],
+            20: ['Recolectado', 'seg-status-transit'],
+            30: ['En tránsito', 'seg-status-transit'],
+            35: ['En aduana', 'seg-status-transit'],
+            40: ['Para entrega', 'seg-status-pickup'],
+            41: ['Intento fallido', 'seg-status-undelivered'],
+            42: ['Para recoger', 'seg-status-pickup'],
+            50: ['Entregado ✅', 'seg-status-delivered'],
+            60: ['Regresado', 'seg-status-undelivered'],
+            70: ['No entregado', 'seg-status-undelivered'],
+            80: ['Expirado', 'seg-status-expired'],
+        };
+        return map[code] || ['Desconocido', 'seg-status-default'];
+    }
+
+    function renderSegList() {
+        const wrap = document.getElementById('seg-list');
+        if(!wrap) return;
+        if(segTrackings.length === 0) {
+            wrap.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:30px 0;">Agrega un número de tracking para comenzar.</div>';
+            return;
+        }
+        wrap.innerHTML = '';
+        segTrackings.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'seg-track-card';
+
+            // Resultados guardados en Firebase
+            const resultKey = `seg_results_${t.key}`;
+            const cachedEl = document.getElementById(resultKey);
+
+            const [statusTxt, statusClass] = segStatusLabel(0);
+
+            card.innerHTML = `
+                <button class="seg-del-btn" onclick="deleteTracking('${t.key}')">×</button>
+                <div class="seg-track-num">${t.label !== t.num ? t.label + ' — ' : ''}${t.num}</div>
+                <div class="seg-track-carrier" id="carrier-${t.key}">Cargando...</div>
+                <span class="seg-status-chip seg-status-default" id="status-${t.key}">Actualizando...</span>
+                <button class="seg-refresh-btn" onclick="fetchTracking('${t.num}','${t.key}')">⟳ Refrescar</button>
+                <div id="events-${t.key}" class="seg-loading">Consultando 17TRACK...</div>`;
+
+            wrap.appendChild(card);
+
+            // Cargar resultado guardado de Firebase
+            db.ref(`seg_results/${t.key}`).once('value', snap => {
+                const r = snap.val();
+                if(!r) {
+                    document.getElementById(`events-${t.key}`).innerHTML =
+                        '<div class="seg-loading">Sin datos aún — pulsa ⟳ Refrescar</div>';
+                    document.getElementById(`carrier-${t.key}`).textContent = 'DHL / 17TRACK';
+                    return;
+                }
+                const [sTxt, sCls] = segStatusLabel(r.status);
+                const statusEl = document.getElementById(`status-${t.key}`);
+                if(statusEl) { statusEl.textContent = sTxt; statusEl.className = `seg-status-chip ${sCls}`; }
+                const carrierEl = document.getElementById(`carrier-${t.key}`);
+                if(carrierEl) carrierEl.textContent = `${r.carrier || 'DHL'} · Actualizado: ${r.updated || '—'}`;
+
+        const eventsEl = document.getElementById(`events-${t.key}`);
+                if(eventsEl) {
+                    if(!r.events || r.events.length === 0) {
+                        eventsEl.innerHTML = '<div class="seg-loading">Sin eventos registrados aún</div>';
+                        return;
+                    }
+                    eventsEl.innerHTML = r.events.map((ev, i) => `
+                        <div class="seg-event">
+                            <div class="seg-event-dot${i > 0 ? ' old' : ''}"></div>
+                            <div class="seg-event-time">${ev.a || '—'}</div>
+                            <div class="seg-event-desc">${ev.z || ev.c || '—'}${ev.l ? ' · ' + ev.l : ''}</div>
+                        </div>`).join('');
+                }
+            });
+        });
+    }
+
+        // ── THEME TOGGLE ──
     const THEME_KEY = 'fm_theme';
     function applyTheme(theme){
         if(theme === 'light'){
@@ -1936,8 +1976,8 @@
                 if(cli.pedidos && cli.pedidos.length >= 1) drawTrendChart(cid, cli.pedidos);
             });
         });
-    }
-    // El tema se aplica en onAuthStateChanged al mostrar la app
+        }
+        // El tema se aplica en onAuthStateChanged al mostrar la app
 </script>
 
 <!-- Botón logout -->
@@ -1954,3 +1994,4 @@
 </div><!-- /main-app-wrapper -->
 </body>
 </html>
+                                               
