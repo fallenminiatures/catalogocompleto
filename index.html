@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FALLEN MINIATURES - Management</title>
+    <title>FALLEN MINIS - Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -40,14 +40,87 @@
             --ship-border: #333;
         }
 
-        
+        body.light {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --text-main: #1a1a1a;
+            --text-dim: #888;
+            --inp-bg: #f8f9fa;
+            --inp-border: #dde1e7;
+            --inp-color: #1a1a1a;
+            --nav-bg: #e8eaed;
+            --res-bg: #f0faf4;
+            --res-text: #444;
+            --res-total: #111;
+            --client-bg: #fafafa;
+            --badge-bg: #f5f5f5;
+            --badge-border: #e0e0e0;
+            --badge-color: #999;
+            --search-bg: #f8f9fa;
+            --search-border: #dde1e7;
+            --catalog-bg: #fff;
+            --catalog-border: #dde1e7;
+            --catalog-item-border: #eee;
+            --catalog-color: #222;
+            --ship-border: #dde1e7;
+        }
+
+        /* ── FIREBASE LOGIN SCREEN ── */
+        #fb-login-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #0a0a0a;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .fb-login-box { width: 100%; max-width: 360px; text-align: center; }
+        .fb-login-title {
+            font-family: var(--font-title); font-size: 32px; font-weight: 900;
+            color: #e0e0e0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: -0.02em;
+        }
+        .fb-login-title span { color: var(--accent); }
+        .fb-login-sub { font-size: 12px; color: #555; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .fb-login-card {
+            background: #141414; border: 1px solid #222; border-radius: 20px; padding: 26px 22px;
+        }
+        .fb-inp {
+            width: 100%; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 12px;
+            padding: 13px 14px; color: #fff; font-size: 14px; outline: none;
+            font-family: var(--font-main); margin-bottom: 12px; box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        .fb-inp:focus { border-color: var(--accent); }
+        .fb-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: var(--accent); color: #000; font-family: var(--font-title);
+            font-size: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+            transition: opacity 0.2s; margin-top: 4px;
+        }
+        .fb-btn:hover { opacity: 0.88; }
+        .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .fb-err { font-size: 12px; color: #ff6b6b; min-height: 18px; margin-top: 8px; text-align: center; }
+        .fb-eye {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-60%);
+            background: none; border: none; color: #555; cursor: pointer; font-size: 16px; padding: 0;
+        }
+
+        /* ── TOGGLE BUTTON ── */
+        .theme-toggle {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            width: 50px; height: 50px; border-radius: 50%; border: none;
+            background: var(--card-bg); box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            cursor: pointer; font-size: 22px; display: flex; align-items: center;
+            justify-content: center; transition: transform 0.2s, background 0.3s;
+            border: 1px solid var(--border);
+        }
+        .theme-toggle:hover { transform: scale(1.12); }
+
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); font-family: var(--font-main); color: var(--text-main); line-height: 1.5; transition: background 0.3s, color 0.3s; }
         .card { transition: background 0.3s, border-color 0.3s; }
         
         .wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .card { width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
-
+        
         h2 { font-family: var(--font-title); font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; text-align: center; margin-bottom: 5px; font-size: 26px; }
         .rate-info { text-align: center; font-size: 11px; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; font-weight: 700; cursor: pointer; border: 1px solid #333; padding: 8px; border-radius: 10px; }
 
@@ -66,15 +139,13 @@
         .status-badge { flex: 1; text-align: center; padding: 10px 5px; border-radius: 10px; font-size: 8px; font-weight: 900; border: 1px solid var(--badge-border); background: var(--badge-bg); color: var(--badge-color); cursor: pointer; font-family: var(--font-title); transition: background 0.2s; }
         .status-paid { background: var(--accent) !important; color: #000 !important; }
 
-        .status-badge { flex: 1; text-align: center; padding: 10px 5px; border-radius: 10px; font-size: 8px; font-weight: 900; border: 1px solid var(--badge-border); background: var(--badge-bg); color: var(--badge-color); cursor: pointer; font-family: var(--font-title); transition: background 0.2s; }
-        .status-paid { background: var(--accent) !important; color: #000 !important; }
-
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 1000; overflow-y: auto; padding: 90px 25px; color: #111; }
         .close-overlay { position: fixed; top: 20px; right: 20px; background: #111; color: #fff; border: none; padding: 14px 24px; border-radius: 50px; font-weight: 700; font-size: 12px; cursor: pointer; z-index: 1010; font-family: var(--font-title); }
         
         .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
         .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
         .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+
 
         /* ── ALERTA ROJA ANTICIPO ── */
         .client-item.alerta-anticipo {
@@ -189,6 +260,7 @@
         .dash-utilidad-pos { color: var(--accent); }
         .dash-utilidad-neg { color: #ff4757; }
 
+
         /* ── KANBAN ── */
         .kanban-wrap {
             display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;
@@ -234,6 +306,7 @@
         }
         .hist-item:last-child { border-bottom:none; }
         .hist-item strong { color:#333; }
+
 
         /* ── SEGUIMIENTO ── */
         .seg-track-card {
@@ -291,6 +364,34 @@
         }
         .seg-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
         .seg-loading { font-size: 11px; color: var(--text-dim); text-align: center; padding: 12px 0; }
+
+        /* ── GRÁFICA DE TENDENCIA ── */
+        .trend-wrap {
+            margin-top: 14px;
+            background: var(--badge-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px 10px;
+        }
+        .trend-title {
+            font-family: var(--font-title); font-size: 9px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .trend-canvas-wrap { position: relative; height: 70px; }
+        .trend-insights {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
+        }
+        .trend-chip {
+            font-size: 9px; font-weight: 800; font-family: var(--font-title);
+            padding: 4px 9px; border-radius: 20px; text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .chip-green  { background: rgba(37,211,102,0.15); color: #25D366; }
+        .chip-yellow { background: rgba(255,200,0,0.15);  color: #f0b429; }
+        .chip-red    { background: rgba(255,71,87,0.15);  color: #ff4757; }
+        .chip-blue   { background: rgba(80,160,255,0.15); color: #50a0ff; }
+        .chip-gray   { background: rgba(136,136,136,0.15);color: #888; }
 
         /* ── DIFUSIÓN TAB ── */
         .dif-contact-row {
@@ -356,7 +457,7 @@
 </head>
 <body>
 
-    <!-- ═══ FIREBASE LOGIN ═══ -->
+<!-- ═══ FIREBASE LOGIN ═══ -->
 <div id="fb-login-screen">
   <div class="fb-login-box">
     <div class="fb-login-title">FALLEN <span>MINIATURES</span></div>
@@ -376,7 +477,7 @@
   </div>
 </div>
 
-    <div id="overlay">
+<div id="overlay">
     <button class="close-overlay" onclick="closeOverlay()">CERRAR Y GUARDAR</button>
     <div id="overlay-content"></div>
 </div>
@@ -529,7 +630,8 @@
                 <button onclick="addGasto()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:13px;cursor:pointer;color:#000;flex-shrink:0;">+</button>
             </div>
 
-<!-- Lista de gastos -->
+
+            <!-- Lista de gastos -->
             <div id="dash-gastos-list" style="max-height:220px;overflow-y:auto;margin-bottom:4px;"></div>
 
             <!-- KANBAN ── PEDIDOS EN COLA -->
@@ -563,7 +665,7 @@
             <div class="seg-apikey-row">
                 <label class="label" style="margin-bottom:6px">🔑 API Key de 17TRACK</label>
                 <div style="display:flex; gap:8px;">
-                    <input type="password" id="seg-apikey-inp" class="input-box" placeholder="FF2D945EB67914B3CAF6A4F943DCB681" style="margin:0; flex:1; font-size:12px;">
+                    <input type="password" id="seg-apikey-inp" class="input-box" placeholder="Pega tu API key aquí" style="margin:0; flex:1; font-size:12px;">
                     <button onclick="saveApiKey()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:12px;cursor:pointer;color:#000;flex-shrink:0;">GUARDAR</button>
                 </div>
                 <div style="font-size:10px; color:var(--text-dim); margin-top:8px;">Tu key se guarda cifrada en Firebase y solo tú puedes verla.</div>
@@ -586,7 +688,7 @@
     </div>
 </div>
 
-    <script>
+<script>
     const CATALOG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrUSvEa7fBbwChq6ycG3JUGUGVzQ1AQbYCDV1PsOlilKy5X-px_PkuIiHTl5IZ76xQ1khOP_9MKlKR/pub?gid=751903595&single=true&output=csv';
     const firebaseConfig = {
         apiKey: "AIzaSyDUYD_gMxeemWt-dfJrPtN8njzmV7HoJ48",
@@ -600,7 +702,7 @@
 
     let currentRate = 18.00, clipData = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = null;
 
-        // ── FIREBASE AUTH ────────────────────────────
+    // ── FIREBASE AUTH ────────────────────────────
     function fbLogin(){
       const email = document.getElementById('fb-email').value.trim();
       const pass  = document.getElementById('fb-pass').value;
@@ -635,7 +737,7 @@
       auth.signOut();
     }
 
-        auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(user => {
       if(user){
         document.getElementById('fb-login-screen').style.display = 'none';
         document.getElementById('main-app-wrapper').style.display = '';
@@ -651,7 +753,7 @@
       }
     });
 
-        // 1. Catálogo y Tipo de Cambio
+    // 1. Catálogo y Tipo de Cambio
     async function fetchCatalog() {
         try {
             const response = await fetch(CATALOG_URL, { cache: "no-store" });
@@ -678,9 +780,9 @@
     function updateRateUI() { 
         document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(2)} MXN`; 
         calculate(); 
-        }
+    }
 
-        function updateManualRate() { 
+    function updateManualRate() { 
         let n = prompt("Cambio USD:", currentRate); 
         if(n){ currentRate = parseFloat(n); updateRateUI(); } 
     }
@@ -721,9 +823,9 @@
             document.getElementById('r-tot').innerText = `TOTAL: $${lastCalc.tot} MXN`;
             document.getElementById('res-div').style.display = 'block';
         }
-        }
+    }
 
-        // 3. RECUPERACIÓN DE DATOS
+    // 3. RECUPERACIÓN DE DATOS
     const chartInstances = {};
 
     db.ref('clientes_v3').on('value', snap => {
@@ -838,7 +940,7 @@
         renderDifContacts();
     });
 
-        // ── GRÁFICA DE TENDENCIA ──
+    // ── GRÁFICA DE TENDENCIA ──
     function drawTrendChart(cid, pedidos) {
         const canvas = document.getElementById(`chart-${cid}`);
         if(!canvas) return;
@@ -879,9 +981,9 @@
                 }
             }
         });
-        }
+    }
 
-        / ── INSIGHTS INTELIGENTES ──
+    // ── INSIGHTS INTELIGENTES ──
     function renderInsights(elementId, pedidos) {
         const el = document.getElementById(elementId);
         if(!el) return;
@@ -946,9 +1048,9 @@
             <span class="trend-chip chip-gray">Total: $${totalHistorico.toLocaleString()}</span>
             <span class="trend-chip chip-gray">Prom: $${ticketProm.toLocaleString()}</span>
         `;
-        }
+    }
 
-        async function saveOrder() {
+    async function saveOrder() {
         if(!selectedClientId) return alert("Selecciona un cliente");
         let items = [];
         let itemsStr = "";
@@ -976,9 +1078,9 @@
             document.getElementById('search-input').value = "";
             selectedClientId = "";
         } catch (error) { alert("Error al guardar pedido"); }
-        }
+    }
 
-        // 4. Overlay y Edición
+    // 4. Overlay y Edición
     function openOverlay(cid, idx) {
         activeCardId = {cid, idx};
         const cli = clipData[cid];
@@ -992,7 +1094,7 @@
                 <input type="email" id="edit-cli-mail" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.email || ''}">
                 <label class="label" style="color:#666">DIRECCIÓN</label>
                 <textarea id="edit-cli-dir" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:60px; resize:none">${cli.direccion || ''}</textarea>
-        </div>
+            </div>
             <div id="items-edit-single">`;
         p.items.forEach(it => {
             html += `<div class="edit-row">
@@ -1008,7 +1110,6 @@
                 <div style="display:flex; gap:10px">
                     <div style="flex:1">
                         <label class="label" style="color:#666">ADELANTO (60%)</label>
-
                         <input type="number" id="edit-ade-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.ade}" oninput="syncManualMoney()">
                     </div>
                     <div style="flex:1">
@@ -1062,9 +1163,9 @@
         document.getElementById('edit-ade-single').value = p.ade;
         document.getElementById('edit-sal-single').value = p.sal;
         document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
-        }
+    }
 
-        function syncManualMoney() {
+    function syncManualMoney() {
         if(!activeCardId) return;
         const {cid, idx} = activeCardId;
         const p = clipData[cid].pedidos[idx];
@@ -1095,7 +1196,7 @@
                     env_antes: p.env,
                     tot_nuevo: newTot,
                 });
-        }
+            }
 
             clipData[cid].tel = document.getElementById('edit-cli-tel').value;
             clipData[cid].email = document.getElementById('edit-cli-mail').value;
@@ -1107,7 +1208,7 @@
         activeCardId = null;
     }
 
-// 5. Auxiliares
+    // 5. Auxiliares
     function filterClients() {
         const val = document.getElementById('search-input').value.toLowerCase();
         const res = document.getElementById('search-results'); 
@@ -1123,7 +1224,6 @@
                 d.innerText=clipData[id].nombre;
                 d.onclick=()=>{ 
                     selectedClientId=id; 
-
                     document.getElementById('search-input').value=clipData[id].nombre; 
                     res.style.display='none'; calculate(); 
                 };
@@ -1157,9 +1257,9 @@
             });
             resultsDiv.style.display = "block";
         }
-        }
+    }
 
-        async function saveClient() {
+    async function saveClient() {
         const n = document.getElementById('c-nom').value;
         const t = document.getElementById('c-tel').value;
         const m = document.getElementById('c-mail').value;
@@ -1177,9 +1277,9 @@
             document.getElementById('c-dir').value = "";
             showTab('calc');
         } catch (e) { alert("Error al guardar cliente"); }
-        }
+    }
 
-        function showTab(t) { 
+    function showTab(t) { 
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('b-'+t).classList.add('active');
         ['calc','new','list','dif','dash','seg'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
@@ -1195,8 +1295,8 @@
     function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
     function removeOrderCard(cid, idx) { if(confirm("¿Borrar pedido?")) { clipData[cid].pedidos.splice(idx, 1); db.ref(`clientes_v3/${cid}/pedidos`).set(clipData[cid].pedidos); } }
     function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
-
-        function addItemTab(id) {
+    
+    function addItemTab(id) {
         const div = document.createElement('div'); div.className = 'item-row edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
         document.getElementById(id).appendChild(div);
@@ -1205,9 +1305,9 @@
         const div = document.createElement('div'); div.className = 'edit-row';
         div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
         document.getElementById('items-edit-single').appendChild(div);
-        }
+    }
 
-        // ── WHATSAPP FUNCTIONS ──
+    // ── WHATSAPP FUNCTIONS ──
     function sendWA() {
         const cli = clipData[selectedClientId];
         if(!cli) return alert("Selecciona un cliente");
@@ -1258,9 +1358,9 @@
         msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_— Cypher_`;
         const fTel = cli.tel.replace(/\D/g, '');
         window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
+    }
 
-        // ════════════════════════════════════════════
+    // ════════════════════════════════════════════
     //  DIFUSIÓN / BLAST
     // ════════════════════════════════════════════
 
@@ -1280,9 +1380,9 @@
         document.getElementById('dif-msg').value = TEMPLATES[key];
         // Ocultar panel de links al cambiar plantilla
         document.getElementById('dif-links-panel').style.display = 'none';
-        }
+    }
 
-        // ── CATEGORY FILTER ──
+    // ── CATEGORY FILTER ──
     let difCategoryFilter = 'todos';
 
     function setDifCategoryFilter(val) {
@@ -1291,7 +1391,7 @@
         renderDifContacts();
     }
 
-// Calcula las etiquetas de un cliente según sus pedidos
+    // Calcula las etiquetas de un cliente según sus pedidos
     function getClientTags(pedidos) {
         if(!pedidos || pedidos.length === 0) return [];
         const n = pedidos.length;
@@ -1413,9 +1513,6 @@
                             backgroundColor: 'rgba(37,211,102,0.08)',
                             borderWidth: 1.5,
                             pointBackgroundColor: '#25D366',
-                            backgroundColor: 'rgba(37,211,102,0.08)',
-                            borderWidth: 1.5,
-                            pointBackgroundColor: '#25D366',
                             pointRadius: data.length === 1 ? 4 : 2,
                             tension: 0.35, fill: true,
                         }]
@@ -1440,7 +1537,7 @@
         updateDifCounter();
     }
 
-        function onDifCheck(checkbox) {
+    function onDifCheck(checkbox) {
         const row = checkbox.closest('.dif-contact-row');
         row.classList.toggle('selected', checkbox.checked);
         updateDifCounter();
@@ -1482,10 +1579,6 @@
         const wrap  = document.getElementById('dif-links-wrap');
         wrap.innerHTML = '';
 
-        const panel = document.getElementById('dif-links-panel');
-        const wrap  = document.getElementById('dif-links-wrap');
-        wrap.innerHTML = '';
-
         selected.forEach(c => {
             const personalMsg = msg.replace(/\{nombre\}/gi, c.nombre.split(' ')[0]);
             const tel = c.tel.replace(/\D/g, '');
@@ -1506,9 +1599,10 @@
 
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    }
 
-        // ── ESTADO DEL PEDIDO ──
+
+    // ── ESTADO DEL PEDIDO ──
     function cycleEstado(cid, idx) {
         const estados = ['proceso', 'listo', 'enviado'];
         const p = clipData[cid].pedidos[idx];
@@ -1556,9 +1650,9 @@
                 <div class="gr-item-sub">${h.sub}</div>
             </div>`).join('');
         res.style.display = 'block';
-        }
+    }
 
-        function globalSearchGo(cid, idx) {
+    function globalSearchGo(cid, idx) {
         document.getElementById('global-results').style.display = 'none';
         document.getElementById('global-search').value = '';
         showTab('list');
@@ -1574,9 +1668,9 @@
                 }
             });
         });
-        }
+    }
 
-        // ── DASHBOARD ──
+    // ── DASHBOARD ──
     let dashChartInstance = null;
 
     // Gastos en Firebase
@@ -1620,7 +1714,7 @@
             cli.pedidos.forEach(p => {
                 allPedidos.push({ ...p, clienteNombre: cli.nombre, cid });
 
-        // Ingresos reales = solo lo marcado como pagado en las tarjetas
+                // Ingresos reales = solo lo marcado como pagado en las tarjetas
                 let ingresoPedido = 0;
                 if(p.pagA) ingresoPedido += (p.ade || 0);
                 if(p.pagS) ingresoPedido += (p.sal || 0);
@@ -1688,7 +1782,7 @@
             gastosByMonth[key] = (gastosByMonth[key] || 0) + (g.monto || 0);
         });
 
-// Unir todos los meses presentes en ingresos o gastos
+        // Unir todos los meses presentes en ingresos o gastos
         const allMonthKeys = [...new Set([...Object.keys(byMonth), ...Object.keys(gastosByMonth)])].sort();
         const monthLabels = allMonthKeys.map(k => {
             const [y,m] = k.split('-');
@@ -1736,6 +1830,7 @@
                 }
             });
         }
+
 
 
         // Lista de gastos individuales
@@ -1794,7 +1889,7 @@
     // ════════════════════════════════════════════
     //  SEGUIMIENTO ✈️ — 17TRACK API
     // ════════════════════════════════════════════
-    let segApiKey = 'FF2D945EB67914B3CAF6A4F943DCB681';
+    let segApiKey = '';
     let segTrackings = [];  // [{ num, label, key }]
 
     // Cargar API key y trackings de Firebase al iniciar
@@ -1805,7 +1900,7 @@
         }
     });
 
-        db.ref('seg_trackings').on('value', snap => {
+    db.ref('seg_trackings').on('value', snap => {
         const val = snap.val();
         segTrackings = val ? Object.entries(val).map(([k,v]) => ({...v, key:k})) : [];
         if(document.getElementById('tab-seg').style.display !== 'none') renderSegList();
@@ -1813,14 +1908,14 @@
 
     function saveApiKey() {
         const key = document.getElementById('seg-apikey-inp').value.trim();
-        if(!key) return alert('FF2D945EB67914B3CAF6A4F943DCB681');
+        if(!key) return alert('Pega tu API key de 17TRACK');
         db.ref('seg_config/apikey').set(key);
         document.getElementById('seg-apikey-inp').value = '';
         document.getElementById('seg-apikey-inp').placeholder = '••••••••••••••••••••••••••••••••';
         alert('API Key guardada correctamente ✅');
     }
 
-        function addTracking() {
+    function addTracking() {
         const num   = document.getElementById('seg-track-inp').value.trim().toUpperCase();
         const label = document.getElementById('seg-track-label').value.trim() || num;
         if(!num) return alert('Ingresa un número de tracking');
@@ -1874,9 +1969,9 @@
                 renderSegList();
             }
         } catch(e) { console.warn('17TRACK error:', e); }
-            }
+    }
 
-        function segStatusLabel(code) {
+    function segStatusLabel(code) {
         const map = {
             0:  ['Sin datos', 'seg-status-default'],
             10: ['En proceso', 'seg-status-default'],
@@ -1937,7 +2032,7 @@
                 const carrierEl = document.getElementById(`carrier-${t.key}`);
                 if(carrierEl) carrierEl.textContent = `${r.carrier || 'DHL'} · Actualizado: ${r.updated || '—'}`;
 
-        const eventsEl = document.getElementById(`events-${t.key}`);
+                const eventsEl = document.getElementById(`events-${t.key}`);
                 if(eventsEl) {
                     if(!r.events || r.events.length === 0) {
                         eventsEl.innerHTML = '<div class="seg-loading">Sin eventos registrados aún</div>';
@@ -1954,7 +2049,7 @@
         });
     }
 
-        // ── THEME TOGGLE ──
+    // ── THEME TOGGLE ──
     const THEME_KEY = 'fm_theme';
     function applyTheme(theme){
         if(theme === 'light'){
@@ -1976,8 +2071,8 @@
                 if(cli.pedidos && cli.pedidos.length >= 1) drawTrendChart(cid, cli.pedidos);
             });
         });
-        }
-        // El tema se aplica en onAuthStateChanged al mostrar la app
+    }
+    // El tema se aplica en onAuthStateChanged al mostrar la app
 </script>
 
 <!-- Botón logout -->
@@ -1994,4 +2089,3 @@
 </div><!-- /main-app-wrapper -->
 </body>
 </html>
-                                               
