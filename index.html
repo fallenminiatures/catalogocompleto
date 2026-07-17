@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FALLEN MINIATURES - Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --accent: #25D366;
+            --bg: #0a0a0a;
+            --card-bg: #141414;
+            --border: #222;
+            --text-main: #e0e0e0;
+            --text-dim: #888;
+            --font-main: 'Inter', sans-serif;
+            --font-title: 'Outfit', sans-serif;
+            --inp-bg: #1f1f1f;
+            --inp-border: #2a2a2a;
+            --inp-color: #fff;
+            --nav-bg: #000;
+            --res-bg: #000;
+            --res-text: #bbb;
+            --res-total: #fff;
+            --client-bg: #1a1a1a;
+            --badge-bg: #0f0f0f;
+            --badge-border: #222;
+            --badge-color: #444;
+            --search-bg: #1f1f1f;
+            --search-border: #333;
+            --catalog-bg: #222;
+            --catalog-border: #444;
+            --catalog-item-border: #333;
+            --catalog-color: #eee;
+            --ship-border: #333;
+        }
+
+        body.light {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --text-main: #1a1a1a;
+            --text-dim: #888;
+            --inp-bg: #f8f9fa;
+            --inp-border: #dde1e7;
+            --inp-color: #1a1a1a;
+            --nav-bg: #e8eaed;
+            --res-bg: #f0faf4;
+            --res-text: #444;
+            --res-total: #111;
+            --client-bg: #fafafa;
+            --badge-bg: #f5f5f5;
+            --badge-border: #e0e0e0;
+            --badge-color: #999;
+            --search-bg: #f8f9fa;
+            --search-border: #dde1e7;
+            --catalog-bg: #fff;
+            --catalog-border: #dde1e7;
+            --catalog-item-border: #eee;
+            --catalog-color: #222;
+            --ship-border: #dde1e7;
+        }
+
+        /* ── PEDIDOS ENVIADOS COLAPSABLES ── */
+        .enviados-toggle {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 700; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            cursor: pointer; padding: 10px 0 6px;
+            border-top: 1px solid var(--border); margin-top: 10px;
+            user-select: none;
+        }
+        .enviados-toggle:hover { color: var(--accent); }
+        .enviados-toggle .toggle-arrow { transition: transform 0.2s; display: inline-block; }
+        .enviados-toggle.open .toggle-arrow { transform: rotate(90deg); }
+        .enviados-body { display: none; }
+        .enviados-body.open { display: block; }
+        .enviado-mini {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px; color: var(--text-dim);
+        }
+        .enviado-mini:last-child { border-bottom: none; }
+        .enviado-mini-row { display: flex; justify-content: space-between; align-items: center; }
+        .enviado-mini-info { display: flex; gap: 8px; align-items: center; }
+        .enviado-mini-total { font-weight: 700; color: var(--accent); font-size: 12px; }
+
+        /* ── FIREBASE LOGIN SCREEN ── */
+        #fb-login-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #0a0a0a;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .fb-login-box { width: 100%; max-width: 360px; text-align: center; }
+        .fb-login-title {
+            font-family: var(--font-title); font-size: 32px; font-weight: 900;
+            color: #e0e0e0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: -0.02em;
+        }
+        .fb-login-title span { color: var(--accent); }
+        .fb-login-sub { font-size: 12px; color: #555; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .fb-login-card {
+            background: #141414; border: 1px solid #222; border-radius: 20px; padding: 26px 22px;
+        }
+        .fb-inp {
+            width: 100%; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 12px;
+            padding: 13px 14px; color: #fff; font-size: 14px; outline: none;
+            font-family: var(--font-main); margin-bottom: 12px; box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        .fb-inp:focus { border-color: var(--accent); }
+        .fb-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: var(--accent); color: #000; font-family: var(--font-title);
+            font-size: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+            transition: opacity 0.2s; margin-top: 4px;
+        }
+        .fb-btn:hover { opacity: 0.88; }
+        .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .fb-err { font-size: 12px; color: #ff6b6b; min-height: 18px; margin-top: 8px; text-align: center; }
+        .fb-eye {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-60%);
+            background: none; border: none; color: #555; cursor: pointer; font-size: 16px; padding: 0;
+        }
+
+        /* ── TOGGLE BUTTON ── */
+        .theme-toggle {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            width: 50px; height: 50px; border-radius: 50%; border: none;
+            background: var(--card-bg); box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            cursor: pointer; font-size: 22px; display: flex; align-items: center;
+            justify-content: center; transition: transform 0.2s, background 0.3s;
+            border: 1px solid var(--border);
+        }
+        .theme-toggle:hover { transform: scale(1.12); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); font-family: var(--font-main); color: var(--text-main); line-height: 1.5; transition: background 0.3s, color 0.3s; }
+        .card { transition: background 0.3s, border-color 0.3s; }
+        
+        .wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+        
+        h2 { font-family: var(--font-title); font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; text-align: center; margin-bottom: 5px; font-size: 26px; }
+        .rate-info { text-align: center; font-size: 11px; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; font-weight: 700; cursor: pointer; border: 1px solid #333; padding: 8px; border-radius: 10px; }
+
+        .nav-tabs { display: flex; gap: 6px; margin-bottom: 25px; background: var(--nav-bg); padding: 6px; border-radius: 16px; transition: background 0.3s; }
+        .nav-btn { flex: 1; background: transparent; border: none; color: var(--text-dim); padding: 10px 4px; border-radius: 12px; cursor: pointer; font-size: 10px; font-weight: 700; text-transform: uppercase; transition: all 0.2s ease; font-family: var(--font-title); }
+        .nav-btn.active { background: #fff; color: #000; }
+
+        .input-box { background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 12px; padding: 14px; margin-bottom: 12px; width: 100%; color: var(--inp-color); font-size: 14px; outline: none; font-family: var(--font-main); transition: background 0.3s, border 0.3s, color 0.3s; }
+        .label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 700; font-family: var(--font-title); }
+
+        .catalog-results { position: absolute; background: var(--catalog-bg); border: 1px solid var(--catalog-border); border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 1000; width: 100%; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15); top: 50px; transition: background 0.3s; }
+        .catalog-option { padding: 12px; font-size: 12px; cursor: pointer; border-bottom: 1px solid var(--catalog-item-border); color: var(--catalog-color); line-height: 1.3; transition: background 0.2s; }
+        .catalog-option:hover { background: var(--inp-bg); color: var(--accent); }
+
+        .client-item { background: var(--client-bg); padding: 22px; border-radius: 20px; margin-bottom: 14px; border: 1px solid var(--border); border-left: 4px solid var(--accent); position: relative; transition: background 0.3s; }
+        .status-badge { flex: 1; text-align: center; padding: 10px 5px; border-radius: 10px; font-size: 8px; font-weight: 900; border: 1px solid var(--badge-border); background: var(--badge-bg); color: var(--badge-color); cursor: pointer; font-family: var(--font-title); transition: background 0.2s; }
+        .status-paid { background: var(--accent) !important; color: #000 !important; }
+
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 1000; overflow-y: auto; padding: 90px 25px; color: #111; }
+        .close-overlay { position: fixed; top: 20px; right: 20px; background: #111; color: #fff; border: none; padding: 14px 24px; border-radius: 50px; font-weight: 700; font-size: 12px; cursor: pointer; z-index: 1010; font-family: var(--font-title); }
+        
+        .edit-row { display: flex; gap: 8px; margin-bottom: 8px; position: relative; }
+        .btn-del { background: #ff4757; color: #fff; border: none; border-radius: 8px; padding: 0 10px; cursor: pointer; }
+        .wa-btn { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; border-radius: 16px; font-weight: 800; font-family: var(--font-title); font-size: 15px; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+
+
+        /* ── ALERTA ROJA ANTICIPO ── */
+        .client-item.alerta-anticipo {
+            border-left-color: #ff4757 !important;
+            background: rgba(255,71,87,0.06) !important;
+        }
+        .alerta-badge {
+            display:inline-flex; align-items:center; gap:5px;
+            background: rgba(255,71,87,0.15); color:#ff4757;
+            font-size:9px; font-weight:900; font-family:var(--font-title);
+            padding:4px 10px; border-radius:20px; text-transform:uppercase;
+            letter-spacing:0.05em; margin-bottom:10px;
+        }
+
+        /* ── ESTADO DEL PEDIDO ── */
+        .estado-btn {
+            font-size:9px; font-weight:800; font-family:var(--font-title);
+            padding:5px 10px; border-radius:20px; border:none; cursor:pointer;
+            text-transform:uppercase; letter-spacing:0.04em; transition:all 0.2s;
+        }
+        .estado-proceso { background:rgba(255,200,0,0.15); color:#f0b429; }
+        .estado-listo   { background:rgba(80,160,255,0.15); color:#50a0ff; }
+        .estado-enviado { background:rgba(37,211,102,0.15); color:#25D366; }
+
+        /* ── NOTAS RÁPIDAS ── */
+        .nota-rapida {
+            width:100%; background:var(--inp-bg); border:1px solid var(--inp-border);
+            border-radius:10px; padding:10px 12px; color:var(--inp-color);
+            font-size:12px; font-family:var(--font-main); resize:none;
+            min-height:60px; outline:none; transition:border 0.2s; margin-top:10px;
+        }
+        .nota-rapida:focus { border-color:var(--accent); }
+        .nota-label {
+            font-size:9px; font-weight:900; font-family:var(--font-title);
+            text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim);
+            margin-top:12px; display:block;
+        }
+
+        /* ── BÚSQUEDA GLOBAL ── */
+        #global-search-wrap {
+            position:relative; margin-bottom:14px;
+        }
+        #global-search {
+            width:100%; background:var(--inp-bg); border:1px solid var(--inp-border);
+            border-radius:12px; padding:12px 14px 12px 36px; color:var(--inp-color);
+            font-size:13px; font-family:var(--font-main); outline:none;
+            transition:border 0.2s;
+        }
+        #global-search:focus { border-color:var(--accent); }
+        .global-search-icon {
+            position:absolute; left:12px; top:50%; transform:translateY(-50%);
+            font-size:14px; pointer-events:none;
+        }
+        #global-results {
+            background:var(--card-bg); border:1px solid var(--border);
+            border-radius:14px; margin-top:6px; overflow:hidden;
+            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+        }
+        .gr-item {
+            padding:12px 16px; border-bottom:1px solid var(--border);
+            cursor:pointer; transition:background 0.15s;
+        }
+        .gr-item:last-child { border-bottom:none; }
+        .gr-item:hover { background:var(--inp-bg); }
+        .gr-item-name { font-size:13px; font-weight:700; font-family:var(--font-title); }
+        .gr-item-sub  { font-size:10px; color:var(--text-dim); margin-top:2px; }
+        .gr-tag {
+            font-size:8px; font-weight:800; font-family:var(--font-title);
+            padding:2px 7px; border-radius:10px; text-transform:uppercase;
+            background:rgba(37,211,102,0.15); color:var(--accent); margin-left:6px;
+        }
+
+        /* ── DASHBOARD ── */
+        .dash-kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+        .dash-kpi {
+            background:var(--client-bg); border:1px solid var(--border);
+            border-radius:16px; padding:16px; text-align:center;
+        }
+        .dash-kpi-val {
+            font-family:var(--font-title); font-size:20px; font-weight:900;
+            color:var(--accent); line-height:1;
+        }
+        .dash-kpi-label {
+            font-size:9px; color:var(--text-dim); text-transform:uppercase;
+            font-weight:700; font-family:var(--font-title); margin-top:4px;
+            letter-spacing:0.07em;
+        }
+        .dash-chart-wrap { position:relative; height:160px; margin-bottom:18px; }
+        .dash-section { font-family:var(--font-title); font-size:11px; font-weight:900;
+            text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim);
+            margin-bottom:10px; margin-top:18px; }
+        .dash-top-item {
+            display:flex; align-items:center; justify-content:space-between;
+            background:var(--client-bg); border:1px solid var(--border);
+            border-radius:12px; padding:12px 14px; margin-bottom:8px;
+        }
+        .dash-top-name { font-size:13px; font-weight:700; font-family:var(--font-title); }
+        .dash-top-val  { font-size:12px; font-weight:800; color:var(--accent); font-family:var(--font-title); }
+
+
+        /* ── GASTOS ── */
+        .gasto-item {
+            display:flex; align-items:center; justify-content:space-between; gap:10px;
+            background:var(--client-bg); border:1px solid var(--border);
+            border-left: 4px solid #ff4757;
+            border-radius:12px; padding:12px 14px; margin-bottom:8px;
+        }
+        .gasto-desc { font-size:13px; font-weight:600; flex:1; }
+        .gasto-monto { font-size:13px; font-weight:800; font-family:var(--font-title); color:#ff4757; white-space:nowrap; }
+        .gasto-fecha { font-size:10px; color:var(--text-dim); }
+        .gasto-del { background:none; border:none; color:#555; cursor:pointer; font-size:16px; padding:0 4px; flex-shrink:0; }
+        .dash-utilidad-pos { color: var(--accent); }
+        .dash-utilidad-neg { color: #ff4757; }
+
+
+        /* ── KANBAN ── */
+        .kanban-wrap {
+            display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;
+            margin-top:4px;
+        }
+        .kanban-col {
+            background:var(--badge-bg); border:1px solid var(--border);
+            border-radius:16px; padding:12px 10px; min-height:100px;
+        }
+        .kanban-col-title {
+            font-family:var(--font-title); font-size:9px; font-weight:900;
+            text-transform:uppercase; letter-spacing:0.08em;
+            margin-bottom:10px; text-align:center; padding:5px;
+            border-radius:8px;
+        }
+        .kanban-col-title.kp { background:rgba(255,200,0,0.15); color:#f0b429; }
+        .kanban-col-title.kl { background:rgba(80,160,255,0.15); color:#50a0ff; }
+        .kanban-col-title.ke { background:rgba(37,211,102,0.15); color:#25D366; }
+        .kanban-card {
+            background:var(--card-bg); border:1px solid var(--border);
+            border-radius:10px; padding:10px; margin-bottom:8px;
+            cursor:pointer; transition:border-color 0.2s;
+        }
+        .kanban-card:hover { border-color: var(--accent); }
+        .kanban-card-name { font-size:11px; font-weight:800; font-family:var(--font-title); margin-bottom:3px; }
+        .kanban-card-total { font-size:12px; font-weight:900; color:var(--accent); font-family:var(--font-title); }
+        .kanban-card-fecha { font-size:9px; color:var(--text-dim); margin-top:2px; }
+        .kanban-empty { font-size:10px; color:var(--text-dim); text-align:center; padding:10px 0; }
+
+        /* ── HISTORIAL DE CAMBIOS ── */
+        .hist-wrap {
+            background:#f5f5f5; border-radius:12px; padding:12px 14px;
+            margin-top:14px; border:1px solid #e0e0e0;
+        }
+        .hist-title {
+            font-size:10px; font-weight:900; font-family:var(--font-title);
+            text-transform:uppercase; letter-spacing:0.08em; color:#888;
+            margin-bottom:8px;
+        }
+        .hist-item {
+            font-size:10px; color:#666; padding:6px 0;
+            border-bottom:1px solid #eee; line-height:1.5;
+        }
+        .hist-item:last-child { border-bottom:none; }
+        .hist-item strong { color:#333; }
+
+
+        /* ── SEGUIMIENTO ── */
+        .seg-track-card {
+            background: var(--client-bg); border: 1px solid var(--border);
+            border-radius: 20px; padding: 20px; margin-bottom: 14px;
+            position: relative;
+        }
+        .seg-track-num {
+            font-family: var(--font-title); font-size: 13px; font-weight: 800;
+            letter-spacing: 0.04em; color: var(--text-main); margin-bottom: 4px;
+        }
+        .seg-track-carrier {
+            font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+            font-weight: 700; font-family: var(--font-title); margin-bottom: 12px;
+        }
+        .seg-status-chip {
+            display: inline-block; font-size: 10px; font-weight: 800;
+            font-family: var(--font-title); padding: 5px 12px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;
+        }
+        .seg-status-transit  { background: rgba(255,200,0,0.15); color: #f0b429; }
+        .seg-status-delivered{ background: rgba(37,211,102,0.15); color: #25D366; }
+        .seg-status-pickup   { background: rgba(80,160,255,0.15); color: #50a0ff; }
+        .seg-status-expired  { background: rgba(136,136,136,0.15); color: #888; }
+        .seg-status-undelivered { background: rgba(255,71,87,0.15); color: #ff4757; }
+        .seg-status-default  { background: rgba(136,136,136,0.15); color: #888; }
+        .seg-event {
+            display: flex; gap: 10px; padding: 8px 0;
+            border-bottom: 1px solid var(--border); font-size: 11px;
+        }
+        .seg-event:last-child { border-bottom: none; }
+        .seg-event-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent); margin-top: 3px; flex-shrink: 0;
+        }
+        .seg-event-dot.old { background: var(--text-dim); }
+        .seg-event-time { color: var(--text-dim); min-width: 90px; font-size: 10px; }
+        .seg-event-desc { color: var(--text-main); flex: 1; }
+        .seg-del-btn {
+            position: absolute; top: 14px; right: 14px;
+            background: none; border: none; color: #555; cursor: pointer; font-size: 18px;
+        }
+        .seg-add-row {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .seg-apikey-row {
+            background: var(--badge-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px; margin-bottom: 18px;
+        }
+        .seg-refresh-btn {
+            font-size: 10px; font-weight: 800; font-family: var(--font-title);
+            background: var(--inp-bg); border: 1px solid var(--inp-border);
+            border-radius: 20px; padding: 5px 12px; cursor: pointer;
+            color: var(--text-dim); text-transform: uppercase; margin-left: 8px;
+        }
+        .seg-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .seg-loading { font-size: 11px; color: var(--text-dim); text-align: center; padding: 12px 0; }
+
+        /* ── GRÁFICA DE TENDENCIA ── */
+        .trend-wrap {
+            margin-top: 14px;
+            background: var(--badge-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px 10px;
+        }
+        .trend-title {
+            font-family: var(--font-title); font-size: 9px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .trend-canvas-wrap { position: relative; height: 70px; }
+        .trend-insights {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
+        }
+        .trend-chip {
+            font-size: 9px; font-weight: 800; font-family: var(--font-title);
+            padding: 4px 9px; border-radius: 20px; text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .chip-green  { background: rgba(37,211,102,0.15); color: #25D366; }
+        .chip-yellow { background: rgba(255,200,0,0.15);  color: #f0b429; }
+        .chip-red    { background: rgba(255,71,87,0.15);  color: #ff4757; }
+        .chip-blue   { background: rgba(80,160,255,0.15); color: #50a0ff; }
+        .chip-gray   { background: rgba(136,136,136,0.15);color: #888; }
+
+        /* ── DIFUSIÓN TAB ── */
+        .dif-contact-row {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--client-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 16px; margin-bottom: 8px;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+        }
+        .dif-contact-row.selected { border-color: var(--accent); background: rgba(37,211,102,0.07); }
+        .dif-contact-row input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+        .dif-contact-name { font-family: var(--font-title); font-weight: 700; font-size: 14px; flex: 1; }
+        .dif-contact-tel { font-size: 11px; color: var(--text-dim); }
+
+        .dif-template-btn {
+            background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 10px;
+            padding: 10px 14px; font-size: 11px; font-weight: 700; font-family: var(--font-title);
+            color: var(--text-dim); cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+        }
+        .dif-template-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        .dif-link-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: var(--inp-bg); border: 1px solid var(--inp-border);
+            border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+        }
+        .dif-link-name { font-size: 13px; font-weight: 700; font-family: var(--font-title); }
+        .dif-link-btn {
+            background: var(--accent); color: #000; border: none; border-radius: 10px;
+            padding: 10px 18px; font-size: 11px; font-weight: 800; font-family: var(--font-title);
+            cursor: pointer; white-space: nowrap; text-transform: uppercase;
+        }
+        .dif-select-all-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .dif-counter {
+            font-size: 11px; color: var(--accent); font-weight: 700; font-family: var(--font-title);
+        }
+        #dif-search {
+            background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 12px;
+            padding: 12px 14px; width: 100%; color: var(--inp-color); font-size: 13px;
+            outline: none; font-family: var(--font-main); margin-bottom: 12px;
+            transition: border 0.2s;
+        }
+        #dif-search:focus { border-color: var(--accent); }
+        #dif-msg {
+            background: var(--inp-bg); border: 1px solid var(--inp-border); border-radius: 12px;
+            padding: 14px; width: 100%; color: var(--inp-color); font-size: 13px;
+            outline: none; font-family: var(--font-main); resize: vertical; min-height: 110px;
+            line-height: 1.6; transition: border 0.2s;
+        }
+        #dif-msg:focus { border-color: var(--accent); }
+        .dif-hint { font-size: 10px; color: var(--text-dim); margin-bottom: 10px; }
+        .dif-section-title {
+            font-family: var(--font-title); font-size: 11px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+            margin-bottom: 10px; margin-top: 18px;
+        }
+        .dif-links-wrap { max-height: 300px; overflow-y: auto; }
+        #dif-contacts-wrap { max-height: 220px; overflow-y: auto; }
+        .dif-empty { text-align: center; color: var(--text-dim); font-size: 12px; padding: 20px 0; }
+    </style>
+</head>
+<body>
+
+<!-- ═══ FIREBASE LOGIN ═══ -->
+<div id="fb-login-screen">
+  <div class="fb-login-box">
+    <div class="fb-login-title">FALLEN <span>MINIATURES</span></div>
+    <div class="fb-login-sub">Management System</div>
+    <div class="fb-login-card">
+      <input class="fb-inp" id="fb-email" type="email" placeholder="Correo electrónico"
+        autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('fb-pass').focus()"/>
+      <div style="position:relative">
+        <input class="fb-inp" id="fb-pass" type="password" placeholder="Contraseña"
+          autocomplete="current-password" style="padding-right:42px;margin-bottom:0"
+          onkeydown="if(event.key==='Enter')fbLogin()"/>
+        <button class="fb-eye" onclick="fbTogglePass()" type="button" id="fb-eye-btn">👁</button>
+      </div>
+      <div class="fb-err" id="fb-err"></div>
+      <button class="fb-btn" id="fb-btn" onclick="fbLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+    <button class="close-overlay" onclick="closeOverlay()">CERRAR Y GUARDAR</button>
+    <div id="overlay-content"></div>
+</div>
+
+<div id="main-app-wrapper" style="display:none;width:100%">
+<div class="wrapper">
+    <div class="card">
+        <h2>FALLEN <span style="color:var(--accent)">MINIATURES</span></h2>
+        <div class="rate-info" id="rate-display" onclick="updateManualRate()">Sincronizando...</div>
+        
+        <!-- BÚSQUEDA GLOBAL -->
+        <div id="global-search-wrap" style="display:none">
+            <span class="global-search-icon">🔍</span>
+            <input type="text" id="global-search" placeholder="Buscar cliente o pedido..." oninput="globalSearch(this.value)" autocomplete="off">
+            <div id="global-results" style="display:none"></div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-btn active" id="b-calc" onclick="showTab('calc')">Cotizar</button>
+            <button class="nav-btn" id="b-new" onclick="showTab('new')">Nuevo</button>
+            <button class="nav-btn" id="b-list" onclick="showTab('list')">Base</button>
+            <button class="nav-btn" id="b-dif" onclick="showTab('dif')">📢 Blast</button>
+            <button class="nav-btn" id="b-dash" onclick="showTab('dash')">📊</button>
+
+        </div>
+
+        <!-- TAB: COTIZAR -->
+        <div id="tab-calc">
+            <input type="text" id="search-input" class="input-box" placeholder="Buscar cliente..." oninput="filterClients()" autocomplete="off">
+            <div id="search-results" style="position:relative; background:var(--search-bg); display:none; border-radius:12px; margin-bottom:10px; max-height:150px; overflow-y:auto; z-index:100; border:1px solid var(--search-border); transition:background 0.3s"></div>
+            
+            <div id="items-container">
+                <div class="item-row edit-row">
+                    <div style="flex:2; position:relative;">
+                        <input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)">
+                        <div class="catalog-results"></div>
+                    </div>
+                    <input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()">
+                    <input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">
+                </div>
+            </div>
+            <button class="nav-btn" style="width:100%; border: 1px dashed #444; margin-bottom:20px;" onclick="addItemTab('items-container')">+ AÑADIR PRODUCTO</button>
+            
+            <label class="label">Descuento (ej: 100 o 10%)</label>
+            <input type="text" id="calc-discount" class="input-box" value="0" oninput="calculate()">
+
+            <label class="label">Envío</label>
+            <div style="display:flex; gap:8px; margin-bottom:15px">
+                <div class="ship-opt active" id="s-100" onclick="setShip(100)" style="flex:1; border:1px solid var(--ship-border); padding:10px; border-radius:12px; text-align:center; font-size:10px; cursor:pointer; transition:border 0.3s">📦 $100</div>
+                <div class="ship-opt" id="s-225" onclick="setShip(225)" style="flex:1; border:1px solid var(--ship-border); padding:10px; border-radius:12px; text-align:center; font-size:10px; cursor:pointer; transition:border 0.3s">⚡ $225</div>
+                <div class="ship-opt" id="s-0" onclick="setShip(0)" style="flex:1; border:1px solid var(--ship-border); padding:10px; border-radius:12px; text-align:center; font-size:10px; cursor:pointer; transition:border 0.3s">🎁 Gratis</div>
+            </div>
+
+            <div id="res-div" style="display:none">
+                <div style="background:var(--res-bg); padding:20px; border-radius:20px; border-left:4px solid var(--accent); transition:background 0.3s">
+                    <div id="r-text" style="font-size:11px; color:var(--res-text)"></div>
+                    <div id="r-tot" style="font-size:20px; font-weight:900; color:var(--res-total); margin-top:5px"></div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:0;">
+                    <button class="wa-btn" onclick="sendWA()" style="flex:2; margin-top:15px;">ENVIAR</button>
+                    <button class="wa-btn" onclick="copyQuote()" style="flex:1; margin-top:15px; background:var(--inp-bg); color:var(--text-main); border:1px solid var(--border);" id="copy-quote-btn">📋</button>
+                </div>
+                <button class="nav-btn" style="width:100%; margin-top:10px; border:1px solid var(--accent); color:var(--accent)" onclick="saveOrder()">REGISTRAR EN BASE</button>
+            </div>
+        </div>
+
+        <!-- TAB: NUEVO CLIENTE -->
+        <div id="tab-new" style="display:none">
+            <input type="text" id="c-nom" class="input-box" placeholder="Nombre completo">
+            <input type="text" id="c-tel" class="input-box" placeholder="WhatsApp">
+            <input type="email" id="c-mail" class="input-box" placeholder="E-mail">
+            <textarea id="c-dir" class="input-box" placeholder="Dirección de envío" style="min-height:80px; resize:none"></textarea>
+            <button class="wa-btn" style="background:#fff; color:#000" onclick="saveClient()">GUARDAR CLIENTE</button>
+        </div>
+
+        <!-- TAB: BASE -->
+        <div id="tab-list" style="display:none"><div id="client-list"></div></div>
+
+        <!-- TAB: DIFUSIÓN / BLAST ══════════════════════════════ -->
+        <div id="tab-dif" style="display:none">
+
+            <!-- PLANTILLAS -->
+            <div class="dif-section-title">📋 Plantilla</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px">
+                <button class="dif-template-btn active" id="tpl-libre" onclick="setTemplate('libre')">Libre</button>
+                <button class="dif-template-btn" id="tpl-promo" onclick="setTemplate('promo')">🎉 Promo</button>
+                <button class="dif-template-btn" id="tpl-cobro" onclick="setTemplate('cobro')">💰 Recordatorio</button>
+                <button class="dif-template-btn" id="tpl-seguimiento" onclick="setTemplate('seguimiento')">📦 Seguimiento</button>
+            </div>
+
+            <!-- MENSAJE -->
+            <div class="dif-section-title">✏️ Mensaje</div>
+            <div class="dif-hint">Usa <strong>{nombre}</strong> para personalizar con el nombre del cliente.</div>
+            <textarea id="dif-msg" placeholder="Escribe tu mensaje aquí..."></textarea>
+
+            <!-- BUSCAR Y SELECCIONAR CONTACTOS -->
+            <div class="dif-section-title">👥 Contactos</div>
+            <input type="text" id="dif-search" placeholder="Filtrar por nombre..." oninput="renderDifContacts()">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                <button class="dif-template-btn dif-cat-btn active" data-cat="todos" onclick="setDifCategoryFilter('todos')">Todos</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="activo" onclick="setDifCategoryFilter('activo')">🟢 Activos</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="frecuente" onclick="setDifCategoryFilter('frecuente')">⭐ Frecuentes</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="promo" onclick="setDifCategoryFilter('promo')">💡 Promo</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="inactivo" onclick="setDifCategoryFilter('inactivo')">🔴 Inactivos</button>
+                <button class="dif-template-btn dif-cat-btn" data-cat="descuento" onclick="setDifCategoryFilter('descuento')">🎁 Descuento</button>
+            </div>
+            <div class="dif-select-all-row">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; font-weight:700; font-family:var(--font-title)">
+                    <input type="checkbox" id="dif-check-all" onchange="toggleSelectAll(this.checked)" style="accent-color:var(--accent); width:16px; height:16px;">
+                    SELECCIONAR TODOS
+                </label>
+                <span class="dif-counter" id="dif-counter">0 seleccionados</span>
+            </div>
+            <div id="dif-contacts-wrap"></div>
+
+            <!-- GENERAR LINKS -->
+            <button class="wa-btn" onclick="generateDifLinks()" style="margin-top:18px">
+                📲 GENERAR LINKS DE WHATSAPP
+            </button>
+
+            <!-- PANEL DE LINKS GENERADOS -->
+            <div id="dif-links-panel" style="display:none; margin-top:20px">
+                <div class="dif-section-title">🔗 Abre cada chat</div>
+                <div class="dif-links-wrap" id="dif-links-wrap"></div>
+            </div>
+
+        </div>
+        <!-- FIN TAB DIFUSIÓN ════════════════════════════════════ -->
+
+        <!-- TAB: DASHBOARD ══════════════════════════════════════ -->
+        <div id="tab-dash" style="display:none">
+
+            <!-- KPIs -->
+            <div class="dash-kpi-grid" id="dash-kpis"></div>
+
+            <!-- INGRESOS POR MES -->
+            <div class="dash-section">📅 Ingresos vs Gastos por mes</div>
+            <div class="dash-chart-wrap" style="height:180px;"><canvas id="dash-chart"></canvas></div>
+
+            <!-- GASTOS ─────────────────────────── -->
+            <div class="dash-section" style="display:flex;align-items:center;justify-content:space-between;">
+                <span>💸 Gastos</span>
+                <button onclick="resetGastos()" style="font-size:9px;font-weight:800;font-family:var(--font-title);background:rgba(255,71,87,0.12);color:#ff4757;border:1px solid rgba(255,71,87,0.3);border-radius:20px;padding:4px 12px;cursor:pointer;text-transform:uppercase;">⟳ Reiniciar</button>
+            </div>
+
+            <!-- Formulario de captura -->
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input type="text" id="gasto-desc" class="input-box" placeholder="Descripción del gasto" style="flex:2;margin:0;">
+                <input type="number" id="gasto-monto" class="input-box" placeholder="MXN" style="flex:1;margin:0;" onkeydown="if(event.key==='Enter')addGasto()">
+                <button onclick="addGasto()" style="background:var(--accent);border:none;border-radius:12px;padding:0 14px;font-weight:800;font-family:var(--font-title);font-size:13px;cursor:pointer;color:#000;flex-shrink:0;">+</button>
+            </div>
+
+<!-- Lista de gastos -->
+            <div id="dash-gastos-list" style="max-height:220px;overflow-y:auto;margin-bottom:4px;"></div>
+
+            <!-- KANBAN ── PEDIDOS EN COLA -->
+            <div class="dash-section">📋 Pedidos en cola</div>
+            <div class="kanban-wrap">
+                <div class="kanban-col">
+                    <div class="kanban-col-title kp">⚙️ En proceso</div>
+                    <div id="kanban-proceso"></div>
+                </div>
+                <div class="kanban-col">
+                    <div class="kanban-col-title kl">✅ Listo</div>
+                    <div id="kanban-listo"></div>
+                </div>
+                <div class="kanban-col">
+                    <div class="kanban-col-title ke">📦 Enviado</div>
+                    <div id="kanban-enviado"></div>
+                </div>
+            </div>
+
+            <!-- TOP CLIENTES -->
+            <div class="dash-section">🏆 Top clientes</div>
+            <div id="dash-top"></div>
+
+        </div>
+        <!-- FIN TAB DASHBOARD ═══════════════════════════════════ -->
+
+
+
+    </div>
+</div>
+
+<script>
+    const CATALOG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrUSvEa7fBbwChq6ycG3JUGUGVzQ1AQbYCDV1PsOlilKy5X-px_PkuIiHTl5IZ76xQ1khOP_9MKlKR/pub?gid=751903595&single=true&output=csv';
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUYD_gMxeemWt-dfJrPtN8njzmV7HoJ48",
+        authDomain: "fallen-cotizador.firebaseapp.com",
+        databaseURL: "https://fallen-cotizador-default-rtdb.firebaseio.com",
+        projectId: "fallen-cotizador"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let currentRate = 18.00, clipData = {}, lastCalc = {}, selectedClientId = "", currentShip = 100, catalogItems = [], activeCardId = null;
+
+    // ── FIREBASE AUTH ────────────────────────────
+    function fbLogin(){
+      const email = document.getElementById('fb-email').value.trim();
+      const pass  = document.getElementById('fb-pass').value;
+      const err   = document.getElementById('fb-err');
+      const btn   = document.getElementById('fb-btn');
+      if(!email || !pass){ err.textContent = 'Ingresa correo y contraseña'; return; }
+      err.textContent = '';
+      btn.disabled = true; btn.textContent = 'Verificando...';
+      auth.signInWithEmailAndPassword(email, pass)
+        .catch(e => {
+          btn.disabled = false; btn.textContent = 'Entrar';
+          const msgs = {
+            'auth/user-not-found':    'Usuario no encontrado',
+            'auth/wrong-password':    'Contraseña incorrecta',
+            'auth/invalid-email':     'Correo inválido',
+            'auth/too-many-requests': 'Demasiados intentos, espera un momento',
+            'auth/invalid-credential':'Correo o contraseña incorrectos',
+          };
+          err.textContent = msgs[e.code] || 'Error al iniciar sesión';
+        });
+    }
+
+    function fbTogglePass(){
+      const inp = document.getElementById('fb-pass');
+      const eye = document.getElementById('fb-eye-btn');
+      if(inp.type === 'password'){ inp.type = 'text'; eye.textContent = '🙈'; }
+      else { inp.type = 'password'; eye.textContent = '👁'; }
+    }
+
+    function fbLogout(){
+      if(!confirm('¿Cerrar sesión?')) return;
+      auth.signOut();
+    }
+
+    auth.onAuthStateChanged(user => {
+      if(user){
+        document.getElementById('fb-login-screen').style.display = 'none';
+        document.getElementById('main-app-wrapper').style.display = '';
+        const badge = document.getElementById('user-email-badge');
+        if(badge) badge.textContent = user.email.split('@')[0];
+        fetchCatalog();
+        applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+      } else {
+        document.getElementById('fb-login-screen').style.display = 'flex';
+        document.getElementById('main-app-wrapper').style.display = 'none';
+        document.getElementById('fb-btn').disabled = false;
+        document.getElementById('fb-btn').textContent = 'Entrar';
+      }
+    });
+
+    // 1. Catálogo y Tipo de Cambio
+    async function fetchCatalog() {
+        try {
+            const response = await fetch(CATALOG_URL, { cache: "no-store" });
+            const data = await response.text();
+            const rows = data.split(/\r?\n/).filter(row => row.trim() !== "");
+            catalogItems = rows.map(row => {
+                const cleanRow = row.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+                const match = cleanRow.match(/(.+)\s*-\s*\$(\d+\.?\d*)\s*usd/i);
+                if (match) return { desc: match[1].trim(), price: parseFloat(match[2]) };
+                return null;
+            }).filter(item => item !== null);
+            fetchExchangeRate();
+        } catch (e) { document.getElementById('rate-display').innerText = "ERROR CATÁLOGO"; }
+    }
+
+    async function fetchExchangeRate() {
+        try {
+            const res = await fetch('https://open.er-api.com/v6/latest/USD');
+            const data = await res.json();
+            if(data.rates.MXN) { currentRate = data.rates.MXN; updateRateUI(); }
+        } catch(e) { updateRateUI(); }
+    }
+
+    function updateRateUI() { 
+        document.getElementById('rate-display').innerText = `DÓLAR: $${currentRate.toFixed(2)} MXN`; 
+        calculate(); 
+    }
+
+    function updateManualRate() { 
+        let n = prompt("Cambio USD:", currentRate); 
+        if(n){ currentRate = parseFloat(n); updateRateUI(); } 
+    }
+
+    // 2. Lógica de Redondeo
+    function parseDiscount(val, subtotal) {
+        if (!val) return 0;
+        let sVal = val.toString().trim();
+        if (sVal.endsWith('%')) {
+            let pct = parseFloat(sVal.replace('%', '')) || 0;
+            return Math.ceil(subtotal * (pct / 100));
+        }
+        return parseFloat(sVal) || 0;
+    }
+
+    function calculate() {
+        let usd = 0;
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const q = parseFloat(r.querySelector('.item-qty').value) || 0;
+            const p = parseFloat(r.querySelector('.item-price').value) || 0;
+            usd += q * p;
+        });
+        if(usd > 0) {
+            let mxn = usd * currentRate;
+            let descInput = document.getElementById('calc-discount').value;
+            let descMonto = Math.ceil(parseDiscount(descInput, mxn));
+            let mxnConDesc = mxn - descMonto;
+            lastCalc = { 
+                ade: Math.ceil(mxnConDesc * 0.6), 
+                sal: Math.ceil(mxnConDesc * 0.4), 
+                ship: currentShip, 
+                descVal: descInput, 
+                descMonto: descMonto, 
+                tot: Math.ceil(mxnConDesc) + currentShip 
+            };
+            document.getElementById('r-text').innerHTML = `60% Ant: $${lastCalc.ade} | 40% Sal: $${lastCalc.sal} | Env: $${currentShip}`;
+            if(descMonto > 0) document.getElementById('r-text').innerHTML += ` | Desc: -$${descMonto}`;
+            document.getElementById('r-tot').innerText = `TOTAL: $${lastCalc.tot} MXN`;
+            document.getElementById('res-div').style.display = 'block';
+        }
+    }
+
+// 3. RECUPERACIÓN DE DATOS
+    const chartInstances = {};
+
+    db.ref('clientes_v3').on('value', snap => {
+        clipData = snap.val() || {};
+        const list = document.getElementById('client-list'); 
+        list.innerHTML = "";
+
+        // Destruir gráficas anteriores
+        Object.values(chartInstances).forEach(c => c.destroy());
+        Object.keys(chartInstances).forEach(k => delete chartInstances[k]);
+
+        // Separar clientes activos (tienen pedidos en proceso/listo) e inactivos
+        const clientsWithOrders = {};
+        const clientsInactivos = {};
+        Object.keys(clipData).reverse().forEach(cid => {
+            const cli = clipData[cid];
+            if(!cli.pedidos || cli.pedidos.length === 0) return;
+            const tieneActivo = cli.pedidos.some(p => (p.estado || 'proceso') !== 'enviado');
+            if(tieneActivo) {
+                clientsWithOrders[cid] = cli;
+            } else {
+                clientsInactivos[cid] = cli;
+            }
+        });
+
+        Object.keys(clientsWithOrders).forEach(cid => {
+            const cli = clientsWithOrders[cid];
+            const pedidos = cli.pedidos;
+
+            // --- Detectar alerta de anticipo (+3 días sin pagar) ---
+            const DIAS_ALERTA = 3;
+            let hayAlerta = false;
+            pedidos.forEach(p => {
+                if(!p.pagA && p.fecha) {
+                    const parts = p.fecha.split('/');
+                    if(parts.length >= 3) {
+                        const d = new Date(parts[2], parts[1]-1, parts[0]);
+                        const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+                        if(dias >= DIAS_ALERTA) hayAlerta = true;
+                    }
+                }
+            });
+
+            // --- Separar pedidos activos y enviados ---
+            let pedidosHTML = '';
+            let enviadosHTML = '';
+            let countEnviados = 0;
+
+            pedidos.forEach((p, idx) => {
+                const estado = p.estado || 'proceso';
+                const estadoLabel = {proceso:'⚙️ En proceso', listo:'✅ Listo', enviado:'📦 Enviado'}[estado];
+                const estadoClass = {proceso:'estado-proceso', listo:'estado-listo', enviado:'estado-enviado'}[estado];
+
+                if(estado === 'enviado') {
+                    // Pedidos enviados van a la sección colapsable
+                    countEnviados++;
+                    const pagado = (p.pagA?(p.ade||0):0) + (p.pagS?(p.sal||0):0) + (p.pagE?(p.env||0):0);
+                    const pendiente = (p.tot||0) - pagado;
+                    enviadosHTML += `
+                    <div class="enviado-mini">
+                        <div class="enviado-mini-row">
+                            <div class="enviado-mini-info">
+                                <span style="color:var(--text-dim)">Pedido ${idx+1} · ${p.fecha||'—'}</span>
+                                <span class="enviado-mini-total">$${p.tot} MXN</span>
+                            </div>
+                            <div style="display:flex;gap:4px;align-items:center;">
+                                <button class="estado-btn ${estadoClass}" style="font-size:9px;padding:4px 7px;" onclick="cycleEstado('${cid}', ${idx})">${estadoLabel}</button>
+                                <button style="background:none;border:none;color:#555;cursor:pointer;font-size:14px;padding:0 2px;" onclick="removeOrderCard('${cid}', ${idx})">×</button>
+                            </div>
+                        </div>
+                        ${pendiente > 0 ? `<div style="font-size:10px;color:#ff6b6b;margin-top:3px;">⚠️ Pendiente: $${pendiente} MXN</div>` : ''}
+                    </div>`;
+                } else {
+                    // Pedidos activos (proceso/listo) se muestran completos
+                    let alertaBadge = '';
+                    if(!p.pagA && p.fecha) {
+                        const parts = p.fecha.split('/');
+                        if(parts.length >= 3) {
+                            const d = new Date(parts[2], parts[1]-1, parts[0]);
+                            const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+                            if(dias >= DIAS_ALERTA) alertaBadge = `<span class="alerta-badge">🔴 Anticipo pendiente ${dias}d</span>`;
+                        }
+                    }
+                    const esUltimo = idx === pedidos.length - 1;
+                    pedidosHTML += `
+                    ${alertaBadge}
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <div onclick="openOverlay('${cid}', ${idx})" style="cursor:pointer; flex:1">
+                            <div style="font-size:10px; color:var(--text-dim)">Pedido ${idx+1} · ${p.fecha || '—'}</div>
+                            <div style="font-size:13px; font-weight:700; color:var(--text-main)">$${p.tot} MXN</div>
+                        </div>
+                        <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+                            <button class="estado-btn ${estadoClass}" onclick="cycleEstado('${cid}', ${idx})">${estadoLabel}</button>
+                            <button style="padding:6px 10px; font-size:9px; background:var(--accent); border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="sendCobranza('${cid}', ${idx})">COBRAR</button>
+                            <button style="background:none; border:none; color:#555; cursor:pointer; font-size:16px; padding:0 4px;" onclick="removeOrderCard('${cid}', ${idx})">×</button>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:5px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--border)">
+                        <div class="status-badge ${p.pagA?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagA',${p.pagA})">ANT. $${p.ade}</div>
+                        <div class="status-badge ${p.pagS?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagS',${p.pagS})">SAL. $${p.sal}</div>
+                        <div class="status-badge ${p.pagE?'status-paid':''}" onclick="updatePay('${cid}', ${idx},'pagE',${p.pagE})">ENV. $${p.env}</div>
+                    </div>`;
+                }
+            });
+
+            // Sección colapsable de enviados
+            const enviadosSection = countEnviados > 0 ? `
+                <div class="enviados-toggle" onclick="toggleEnviados(this)">
+                    <span class="toggle-arrow">▶</span>
+                    📦 ${countEnviados} pedido${countEnviados>1?'s':''} enviado${countEnviados>1?'s':''}
+                </div>
+                <div class="enviados-body">
+                    ${enviadosHTML}
+                </div>` : '';
+
+            // --- Notas rápidas del cliente ---
+            const notaHTML = `
+                <span class="nota-label">📝 Notas del cliente</span>
+                <textarea class="nota-rapida" id="nota-${cid}" placeholder="Preferencias, colores, estilo..." onblur="saveNota('${cid}')">${cli.nota || ''}</textarea>`;
+
+            // --- Gráfica e insights ---
+            const canvasId = `chart-${cid}`;
+            const trendHTML = pedidos.length >= 1 ? `
+                <div class="trend-wrap">
+                    <div class="trend-title">📈 Historial de compras</div>
+                    <div class="trend-canvas-wrap"><canvas id="${canvasId}"></canvas></div>
+                    <div class="trend-insights" id="insights-${cid}"></div>
+                </div>` : '';
+
+            list.innerHTML += `
+            <div class="client-item${hayAlerta ? ' alerta-anticipo' : ''}">
+                <div style="font-family:var(--font-title); font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:16px">${cli.nombre}</div>
+                ${pedidosHTML}
+                ${enviadosSection}
+                ${notaHTML}
+                ${trendHTML}
+            </div>`;
+        });
+
+        // ── CLIENTES INACTIVOS (solo enviados) ──
+        const countInactivos = Object.keys(clientsInactivos).length;
+        if(countInactivos > 0) {
+            list.innerHTML += `
+            <div id="inactivos-toggle" onclick="toggleInactivos()" style="
+                display:flex; align-items:center; gap:8px; cursor:pointer;
+                padding:12px 16px; margin-top:8px; border-radius:14px;
+                background:var(--card-bg); border:1px dashed var(--border);
+                font-size:12px; font-weight:700; color:var(--text-dim);
+                text-transform:uppercase; letter-spacing:0.05em; user-select:none;">
+                <span id="inactivos-arrow" style="transition:transform 0.2s;">▶</span>
+                👤 ${countInactivos} cliente${countInactivos>1?'s':''} inactivo${countInactivos>1?'s':''}
+            </div>
+            <div id="inactivos-body" style="display:none;">`;
+
+            Object.keys(clientsInactivos).forEach(cid => {
+                const cli = clientsInactivos[cid];
+                const pedidos = cli.pedidos;
+                const totalComprado = pedidos.reduce((a,p) => a+(p.tot||0), 0);
+                const canvasId = 'chart-' + cid;
+                list.innerHTML += `
+                <div class="client-item" style="opacity:0.7; border-style:dashed;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="font-family:var(--font-title); font-size:17px; font-weight:700; color:var(--text-main);">${cli.nombre}</div>
+                        <span style="font-size:10px; background:var(--badge-bg); border:1px solid var(--border); color:var(--text-dim); padding:3px 8px; border-radius:20px;">INACTIVO</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">
+                        ${cli.tel ? '📞 ' + cli.tel : ''} ${cli.email ? '· ' + cli.email : ''}
+                    </div>
+                    <div style="font-size:12px; color:var(--accent); font-weight:700; margin-bottom:12px;">
+                        Total histórico: $${totalComprado.toLocaleString()} MXN · ${pedidos.length} pedido${pedidos.length>1?'s':''}
+                    </div>
+                    <div class="trend-wrap">
+                        <div class="trend-title">📈 Historial de compras</div>
+                        <div class="trend-canvas-wrap"><canvas id="${canvasId}"></canvas></div>
+                        <div class="trend-insights" id="insights-${cid}"></div>
+                    </div>
+                </div>`;
+            });
+
+            list.innerHTML += '</div>'; // cierra inactivos-body
+        }
+
+        // Dibujar gráficas y calcular insights después del render
+        requestAnimationFrame(() => {
+            Object.keys(clientsWithOrders).forEach(cid => {
+                const cli = clientsWithOrders[cid];
+                const pedidos = cli.pedidos;
+                if(pedidos.length < 1) return;
+                drawTrendChartWithHistory(cid, pedidos);
+            });
+            // Gráficas de inactivos solo si el panel está abierto
+            // Se dibujan al abrir con toggleInactivos()
+        });
+
+        renderDifContacts();
+    });
+
+    // ── GRÁFICA DE TENDENCIA (con historial archivado) ──
+    // Carga historial adicional de pedidos archivados y los fusiona con los actuales
+    function drawTrendChartWithHistory(cid, pedidosActuales) {
+        var cli = clipData[cid];
+        if(!cli || !cli.tel) { drawTrendChart(cid, pedidosActuales); return; }
+        var telKey = cli.tel.replace(/\D/g, '');
+        if(!telKey) { drawTrendChart(cid, pedidosActuales); return; }
+        db.ref('historial_clientes_v1/' + telKey).once('value', function(snap) {
+            var historial = snap.val();
+            var pedidosArchivados = historial ? Object.values(historial) : [];
+            // Combinar y deduplicar por fecha+monto
+            var combined = pedidosArchivados.concat(pedidosActuales);
+            // Ordenar por fecha
+            combined.sort(function(a, b) {
+                var fa = a.fecha ? a.fecha.split('/').reverse().join('') : '';
+                var fb = b.fecha ? b.fecha.split('/').reverse().join('') : '';
+                return fa.localeCompare(fb);
+            });
+            drawTrendChart(cid, combined);
+            renderInsights('insights-' + cid, combined);
+        });
+    }
+
+    // ── GRÁFICA DE TENDENCIA ──
+    function drawTrendChart(cid, pedidos) {
+        const canvas = document.getElementById(`chart-${cid}`);
+        if(!canvas) return;
+        const labels = pedidos.map((p, i) => p.fecha ? p.fecha.split('/').slice(0,2).join('/') : `P${i+1}`);
+        const data   = pedidos.map(p => p.tot || 0);
+        const isLight = document.body.classList.contains('light');
+        const gridColor  = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+        const labelColor = isLight ? '#888' : '#555';
+
+        if(chartInstances[cid]) chartInstances[cid].destroy();
+
+        chartInstances[cid] = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    borderColor: '#25D366',
+                    backgroundColor: 'rgba(37,211,102,0.08)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#25D366',
+                    pointRadius: data.length === 1 ? 5 : 3,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: {
+                    callbacks: { label: ctx => ` $${ctx.parsed.y.toLocaleString()} MXN` }
+                }},
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 9 }, maxTicksLimit: 6 } },
+                    y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 9 },
+                        callback: v => `$${(v/1000).toFixed(0)}k`
+                    }}
+                }
+            }
+        });
+    }
+
+// ── INSIGHTS INTELIGENTES ──
+    function renderInsights(elementId, pedidos) {
+        const el = document.getElementById(elementId);
+        if(!el) return;
+
+        const totales = pedidos.map(p => p.tot || 0);
+        const totalHistorico = totales.reduce((a,b) => a+b, 0);
+        const ticketProm = Math.round(totalHistorico / pedidos.length);
+        const n = pedidos.length;
+
+        // Calcular días desde el último pedido
+        let diasDesdeUltimo = null;
+        const lastPed = pedidos[pedidos.length - 1];
+        if(lastPed.fecha) {
+            const parts = lastPed.fecha.split('/');
+            if(parts.length >= 3) {
+                const d = new Date(parts[2], parts[1]-1, parts[0]);
+                diasDesdeUltimo = Math.floor((Date.now() - d.getTime()) / 86400000);
+            }
+        }
+
+        // Tendencia (comparar última mitad vs primera mitad)
+        let tendenciaChip = '';
+        if(n >= 3) {
+            const mitad = Math.floor(n/2);
+            const promReciente = totales.slice(-mitad).reduce((a,b)=>a+b,0)/mitad;
+            const promAntiguo  = totales.slice(0, mitad).reduce((a,b)=>a+b,0)/mitad;
+            if(promReciente > promAntiguo * 1.1)
+                tendenciaChip = `<span class="trend-chip chip-green">📈 Creciendo</span>`;
+            else if(promReciente < promAntiguo * 0.9)
+                tendenciaChip = `<span class="trend-chip chip-red">📉 Bajando</span>`;
+            else
+                tendenciaChip = `<span class="trend-chip chip-blue">➡️ Estable</span>`;
+        }
+
+        // Frecuencia
+        let freqChip = '';
+        if(n === 1) freqChip = `<span class="trend-chip chip-gray">1er pedido</span>`;
+        else if(n >= 5) freqChip = `<span class="trend-chip chip-green">⭐ Cliente frecuente</span>`;
+        else if(n >= 3) freqChip = `<span class="trend-chip chip-blue">Cliente recurrente</span>`;
+        else freqChip = `<span class="trend-chip chip-gray">${n} pedidos</span>`;
+
+        // Actividad reciente
+        let actividadChip = '';
+        if(diasDesdeUltimo !== null) {
+            if(diasDesdeUltimo <= 30)
+                actividadChip = `<span class="trend-chip chip-green">🟢 Activo</span>`;
+            else if(diasDesdeUltimo <= 90)
+                actividadChip = `<span class="trend-chip chip-yellow">🟡 ${diasDesdeUltimo}d sin comprar</span>`;
+            else
+                actividadChip = `<span class="trend-chip chip-red">🔴 ${diasDesdeUltimo}d inactivo</span>`;
+        }
+
+        // Sugerencia
+        let sugerenciaChip = '';
+        if(diasDesdeUltimo !== null && diasDesdeUltimo > 60 && n >= 2)
+            sugerenciaChip = `<span class="trend-chip chip-yellow">💡 Candidate a promo</span>`;
+        if(n >= 5 && diasDesdeUltimo !== null && diasDesdeUltimo <= 60)
+            sugerenciaChip = `<span class="trend-chip chip-green">🎁 Merece descuento</span>`;
+
+        el.innerHTML = `
+            ${freqChip}${actividadChip}${tendenciaChip}${sugerenciaChip}
+            <span class="trend-chip chip-gray">Total: $${totalHistorico.toLocaleString()}</span>
+            <span class="trend-chip chip-gray">Prom: $${ticketProm.toLocaleString()}</span>
+        `;
+    }
+
+    async function saveOrder() {
+        if(!selectedClientId) return alert("Selecciona un cliente");
+        let items = [];
+        let itemsStr = "";
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            const p = r.querySelector('.item-price').value;
+            if(n) { items.push({ nom: n, cant: q, prec: p }); itemsStr += `${q}x ${n}, `; }
+        });
+        const cli = clipData[selectedClientId];
+        const fechaActual = new Date().toLocaleDateString();
+        const datosSheets = {
+            id: "ORD-" + Date.now(), nombre: cli.nombre, whatsapp: cli.tel,
+            descripcion: itemsStr, costo: lastCalc.tot,
+            notas: `Anticipo: ${lastCalc.ade} | Saldo: ${lastCalc.sal} | Envío: ${lastCalc.ship}`
+        };
+        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+        try {
+            fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
+            if(!cli.pedidos) cli.pedidos = [];
+            cli.pedidos.push({ fecha: fechaActual, ...lastCalc, env: lastCalc.ship, items: items, pagA: false, pagS: false, pagE: false });
+            await db.ref(`clientes_v3/${selectedClientId}`).set(cli);
+            alert("¡Pedido registrado y Tarjeta creada!");
+            showTab('list');
+            document.getElementById('search-input').value = "";
+            selectedClientId = "";
+        } catch (error) { alert("Error al guardar pedido"); }
+    }
+
+    // 4. Overlay y Edición
+    function openOverlay(cid, idx) {
+        activeCardId = {cid, idx};
+        const cli = clipData[cid];
+        const p = cli.pedidos[idx];
+        let html = `
+            <div style="font-weight:900; margin-bottom:10px; font-size:18px">EDITAR PEDIDO: ${cli.nombre}</div>
+            <div style="margin-bottom:20px; padding:15px; background:#f0f0f0; border-radius:15px;">
+                <label class="label" style="color:#666">WHATSAPP</label>
+                <input type="text" id="edit-cli-tel" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.tel || ''}">
+                <label class="label" style="color:#666">E-MAIL</label>
+                <input type="email" id="edit-cli-mail" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; margin-bottom:10px" value="${cli.email || ''}">
+                <label class="label" style="color:#666">DIRECCIÓN</label>
+                <textarea id="edit-cli-dir" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:60px; resize:none">${cli.direccion || ''}</textarea>
+            </div>
+            <div id="items-edit-single">`;
+        p.items.forEach(it => {
+            html += `<div class="edit-row">
+                <div style="flex:2; position:relative;"><input type="text" class="it-n" value="${it.nom}" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div>
+                <input type="number" class="it-q" value="${it.cant}" style="width:45px" oninput="overlayRecalc()">
+                <input type="number" class="it-p" value="${it.prec}" style="width:60px" oninput="overlayRecalc()">
+                <button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>
+            </div>`;
+        });
+        html += `</div>
+            <button class="nav-btn" style="width:100%; color:#111; border:1px solid #ccc; margin-top:10px" onclick="addItemOverlay()">+ PRODUCTO</button>
+            <div style="margin-top:20px; background:#f9f9f9; padding:15px; border-radius:15px; border:1px solid #eee">
+                <div style="display:flex; gap:10px">
+                    <div style="flex:1">
+                        <label class="label" style="color:#666">ADELANTO (60%)</label>
+                        <input type="number" id="edit-ade-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.ade}" oninput="syncManualMoney()">
+                    </div>
+                    <div style="flex:1">
+                        <label class="label" style="color:#666">SALDO (40%)</label>
+                        <input type="number" id="edit-sal-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.sal}" oninput="syncManualMoney()">
+                    </div>
+                </div>
+                <label class="label" style="color:#666; margin-top:10px">DESCUENTO</label>
+                <input type="text" id="edit-desc-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.descVal || 0}" oninput="overlayRecalc()">
+                <label class="label" style="color:#666">ENVÍO MXN</label>
+                <input type="number" id="edit-ship-single" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111" value="${p.env}" oninput="overlayRecalc()">
+                <label class="label" style="color:#666; margin-top:10px">NOTAS DEL PEDIDO</label>
+                <textarea id="edit-p-notas" class="input-box" style="background:#fff; border:1px solid #ddd; color:#111; min-height:80px; resize:none" placeholder="Notas sobre el trabajo o cliente...">${p.notas || ''}</textarea>
+                <div id="total-idx-single" style="font-weight:900; font-size:16px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px">TOTAL: $${p.tot} MXN</div>
+            </div>`;
+        // Historial de cambios de precio
+        if(p.historial && p.historial.length > 0) {
+            html += `<div class="hist-wrap">
+                <div class="hist-title">🕓 Historial de cambios</div>
+                ${[...p.historial].reverse().map(h => `
+                    <div class="hist-item">
+                        <strong>${h.fecha}</strong><br>
+                        Antes: $${h.tot_antes} MXN (Ant $${h.ade_antes} · Sal $${h.sal_antes} · Env $${h.env_antes})<br>
+                        Después: <strong>$${h.tot_nuevo} MXN</strong>
+                    </div>`).join('')}
+            </div>`;
+        }
+
+        document.getElementById('overlay-content').innerHTML = html;
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    function overlayRecalc() {
+        if(!activeCardId) return;
+        const {cid, idx} = activeCardId;
+        const p = clipData[cid].pedidos[idx];
+        let usd = 0;
+        p.items = [];
+        document.querySelectorAll('#items-edit-single .edit-row').forEach(r => {
+            const q = parseFloat(r.querySelector('.it-q').value)||0;
+            const pr = parseFloat(r.querySelector('.it-p').value)||0;
+            usd += (q * pr);
+            p.items.push({ nom: r.querySelector('.it-n').value, cant: q, prec: pr });
+        });
+        const ship = parseFloat(document.getElementById('edit-ship-single').value) || 0;
+        const dIn = document.getElementById('edit-desc-single').value;
+        let mxn = usd * currentRate;
+        let dM = Math.ceil(parseDiscount(dIn, mxn));
+        let mxnD = mxn - dM;
+        p.ade = Math.ceil(mxnD * 0.6); p.sal = Math.ceil(mxnD * 0.4); p.env = ship; p.descVal = dIn; p.descMonto = dM; p.tot = Math.ceil(mxnD) + ship;
+        document.getElementById('edit-ade-single').value = p.ade;
+        document.getElementById('edit-sal-single').value = p.sal;
+        document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
+    }
+
+    function syncManualMoney() {
+        if(!activeCardId) return;
+        const {cid, idx} = activeCardId;
+        const p = clipData[cid].pedidos[idx];
+        p.ade = parseFloat(document.getElementById('edit-ade-single').value) || 0;
+        p.sal = parseFloat(document.getElementById('edit-sal-single').value) || 0;
+        p.env = parseFloat(document.getElementById('edit-ship-single').value) || 0;
+        p.tot = p.ade + p.sal + p.env;
+        document.getElementById('total-idx-single').innerText = `TOTAL: $${p.tot} MXN`;
+    }
+
+    function closeOverlay() {
+        if(activeCardId){
+            const {cid, idx} = activeCardId;
+            const p = clipData[cid].pedidos[idx];
+
+            // Guardar snapshot en historial si el total cambió
+            const newAde = parseFloat(document.getElementById('edit-ade-single').value) || p.ade;
+            const newSal = parseFloat(document.getElementById('edit-sal-single').value) || p.sal;
+            const newEnv = parseFloat(document.getElementById('edit-ship-single').value) || p.env;
+            const newTot = newAde + newSal + newEnv;
+            if(newTot !== p.tot) {
+                if(!p.historial) p.historial = [];
+                p.historial.push({
+                    fecha: new Date().toLocaleString('es-MX'),
+                    tot_antes: p.tot,
+                    ade_antes: p.ade,
+                    sal_antes: p.sal,
+                    env_antes: p.env,
+                    tot_nuevo: newTot,
+                });
+            }
+
+            clipData[cid].tel = document.getElementById('edit-cli-tel').value;
+            clipData[cid].email = document.getElementById('edit-cli-mail').value;
+            clipData[cid].direccion = document.getElementById('edit-cli-dir').value;
+            clipData[cid].pedidos[idx].notas = document.getElementById('edit-p-notas').value;
+            db.ref(`clientes_v3/${cid}`).set(clipData[cid]);
+        }
+        document.getElementById('overlay').style.display = 'none';
+        activeCardId = null;
+    }
+
+// 5. Auxiliares
+    function filterClients() {
+        const val = document.getElementById('search-input').value.toLowerCase();
+        const res = document.getElementById('search-results'); 
+        res.innerHTML = "";
+        if(!val) { res.style.display='none'; return; }
+        Object.keys(clipData).forEach(id => {
+            if(clipData[id].nombre.toLowerCase().includes(val)) {
+                const d = document.createElement('div'); 
+                d.style.padding="12px"; d.style.color="var(--text-main)"; d.style.fontSize="11px";
+                d.style.borderBottom="1px solid var(--search-border)"; d.style.cursor="pointer";
+                d.onmouseover=()=>d.style.background="var(--inp-bg)";
+                d.onmouseout=()=>d.style.background="";
+                d.innerText=clipData[id].nombre;
+                d.onclick=()=>{ 
+                    selectedClientId=id; 
+                    document.getElementById('search-input').value=clipData[id].nombre; 
+                    res.style.display='none'; calculate(); 
+                };
+                res.appendChild(d);
+            }
+        });
+        res.style.display='block';
+    }
+
+    function searchCatalog(input) {
+        const val = input.value.toLowerCase();
+        const resultsDiv = input.nextElementSibling;
+        resultsDiv.innerHTML = "";
+        if (val.length < 3) { resultsDiv.style.display = "none"; return; }
+        const matches = catalogItems.filter(i => i.desc.toLowerCase().includes(val)).slice(0, 10);
+        if (matches.length > 0) {
+            matches.forEach(m => {
+                const d = document.createElement('div');
+                d.className = 'catalog-option';
+                d.innerText = `${m.desc} ($${m.price} USD)`;
+                d.onclick = () => {
+                    input.value = m.desc;
+                    const row = input.closest('.edit-row');
+                    const priceInp = row.querySelector('.item-price') || row.querySelector('.it-p');
+                    if (priceInp) priceInp.value = m.price;
+                    resultsDiv.style.display = "none";
+                    calculate();
+                    if (activeCardId) overlayRecalc();
+                };
+                resultsDiv.appendChild(d);
+            });
+            resultsDiv.style.display = "block";
+        }
+    }
+
+    async function saveClient() {
+        const n = document.getElementById('c-nom').value;
+        const t = document.getElementById('c-tel').value;
+        const m = document.getElementById('c-mail').value;
+        const d = document.getElementById('c-dir').value;
+        if(!n || !t) return alert("Nombre y Tel obligatorios");
+        const datosSheets = { id: "CLI-" + Date.now(), nombre: n, whatsapp: t, email: m, direccion: d, descripcion: "NUEVO CLIENTE", costo: 0, notas: "Registro inicial" };
+        const urlWebApp = "https://script.google.com/macros/s/AKfycbwnNhbxjqYtpfhAGd4SsOSSYDH4Ddlsoa2iiME7fPYGzPrTZCxEzEQBoO8d3aCDvz4W/exec";
+        try {
+            fetch(urlWebApp, { method: "POST", mode: "no-cors", body: JSON.stringify(datosSheets) });
+            await db.ref('clientes_v3').push({ nombre: n, tel: t, email: m, direccion: d });
+            alert("Cliente guardado en ambos sistemas");
+            document.getElementById('c-nom').value = "";
+            document.getElementById('c-tel').value = "";
+            document.getElementById('c-mail').value = "";
+            document.getElementById('c-dir').value = "";
+            showTab('calc');
+        } catch (e) { alert("Error al guardar cliente"); }
+    }
+
+    function showTab(t) { 
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('b-'+t).classList.add('active');
+        ['calc','new','list','dif','dash'].forEach(id=>document.getElementById('tab-'+id).style.display = id==t?'block':'none');
+        if(t === 'dif') renderDifContacts();
+        if(t === 'dash') renderDashboard();
+        // Mostrar búsqueda global en Base y Dashboard
+        const gsw = document.getElementById('global-search-wrap');
+        if(gsw) gsw.style.display = (t==='list'||t==='dash') ? 'block' : 'none';
+        if(t !== 'list' && t !== 'dash') { document.getElementById('global-results').style.display='none'; }
+    }
+
+    function updatePay(cid, idx, field, val) { db.ref(`clientes_v3/${cid}/pedidos/${idx}/${field}`).set(!val); }
+    function removeOrderCard(cid, idx) {
+        if(!confirm('¿Borrar pedido?')) return;
+        var cli = clipData[cid];
+        var pedido = cli.pedidos[idx];
+        // Archivar el pedido en historial persistente por teléfono
+        // así el historial de compras sobrevive aunque se borre el cliente
+        if(cli.tel && pedido) {
+            var telKey = cli.tel.replace(/\D/g, '');
+            if(telKey) {
+                var archivado = {
+                    fecha: pedido.fecha || '',
+                    tot: pedido.tot || 0,
+                    ade: pedido.ade || 0,
+                    sal: pedido.sal || 0,
+                    env: pedido.env || 0,
+                    nombre: cli.nombre || ''
+                };
+                db.ref('historial_clientes_v1/' + telKey).push(archivado);
+            }
+        }
+        clipData[cid].pedidos.splice(idx, 1);
+        db.ref('clientes_v3/' + cid + '/pedidos').set(clipData[cid].pedidos);
+    }
+    function setShip(v) { currentShip=v; document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('active')); document.getElementById('s-'+v).classList.add('active'); calculate(); }
+    
+    function addItemTab(id) {
+        const div = document.createElement('div'); div.className = 'item-row edit-row';
+        div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="item-name input-box" placeholder="Producto..." style="margin:0; width:100%" oninput="searchCatalog(this)"><div class="catalog-results"></div></div><input type="number" class="item-qty input-box" value="1" style="width:60px; margin:0" oninput="calculate()"><input type="number" class="item-price input-box" placeholder="USD" style="width:80px; margin:0" oninput="calculate()">`;
+        document.getElementById(id).appendChild(div);
+    }
+    function addItemOverlay() {
+        const div = document.createElement('div'); div.className = 'edit-row';
+        div.innerHTML = `<div style="flex:2; position:relative;"><input type="text" class="it-n" placeholder="Prod" oninput="searchCatalog(this); overlayRecalc()"><div class="catalog-results"></div></div><input type="number" class="it-q" value="1" style="width:45px" oninput="overlayRecalc()"><input type="number" class="it-p" placeholder="USD" style="width:60px" oninput="overlayRecalc()"><button class="btn-del" onclick="this.parentElement.remove(); overlayRecalc()">X</button>`;
+        document.getElementById('items-edit-single').appendChild(div);
+    }
+
+    // ── WHATSAPP FUNCTIONS ──
+    function sendWA() {
+        const cli = clipData[selectedClientId];
+        if(!cli) return alert("Selecciona un cliente");
+        let msg = `*FALLEN MINIATURES - COTIZACIÓN*\n\n`;
+
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            if(n) msg += `• ${q}x ${n}\n`;
+        });
+        msg += `\n*Anticipo (60%):* $${lastCalc.ade} MXN\n`;
+        msg += `*Saldo (40%):* $${lastCalc.sal} MXN\n`;
+        msg += `*Envío:* $${lastCalc.ship} MXN\n`;
+        if(lastCalc.descMonto > 0) msg += `*Descuento:* -$${lastCalc.descMonto} MXN\n`;
+        msg += `\n*TOTAL:* $${lastCalc.tot} MXN\n\n_— Cypher_`;
+        const fTel = cli.tel.replace(/\D/g, '');
+        window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function copyQuote() {
+        const cli = clipData[selectedClientId];
+        let msg = `FALLEN MINIATURES — COTIZACIÓN\n\n`;
+        document.querySelectorAll('#tab-calc .item-row').forEach(r => {
+            const n = r.querySelector('.item-name').value;
+            const q = r.querySelector('.item-qty').value;
+            if(n) msg += `• ${q}x ${n}\n`;
+        });
+        msg += `\nAnticipo (60%): $${lastCalc.ade} MXN\n`;
+        msg += `Saldo (40%): $${lastCalc.sal} MXN\n`;
+        msg += `Envío: $${lastCalc.ship} MXN\n`;
+        if(lastCalc.descMonto > 0) msg += `Descuento: -$${lastCalc.descMonto} MXN\n`;
+        msg += `\nTOTAL: $${lastCalc.tot} MXN\n\n— Cypher`;
+        navigator.clipboard.writeText(msg).then(() => {
+            const btn = document.getElementById('copy-quote-btn');
+            btn.textContent = '✅';
+            setTimeout(() => btn.textContent = '📋', 2000);
+        }).catch(() => alert('No se pudo copiar al portapapeles'));
+    }
+
+    function sendCobranza(cid, idx) {
+        const cli = clipData[cid];
+        const p = cli.pedidos[idx];
+        let msg = `*RECORDATORIO DE PAGO - FALLEN MINIATURES*\n\n`;
+        msg += `Hola *${cli.nombre}*, te comparto el estado de tu pedido:\n\n`;
+        if(!p.pagA) msg += `• *Anticipo Pendiente:* $${p.ade} MXN\n`;
+        if(!p.pagS) msg += `• *Saldo Pendiente:* $${p.sal} MXN\n`;
+        if(!p.pagE) msg += `• *Envío Pendiente:* $${p.env} MXN\n`;
+        msg += `\n*Total a liquidar:* $${p.tot} MXN\n\n_— Cypher_`;
+        const fTel = cli.tel.replace(/\D/g, '');
+        window.open(`https://wa.me/52${fTel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // ════════════════════════════════════════════
+    //  DIFUSIÓN / BLAST
+    // ════════════════════════════════════════════
+
+    const TEMPLATES = {
+        libre: '',
+        promo: `🎉 *¡Hola {nombre}!*\n\nTenemos una promoción especial para ti 👇\n\n✨ [Describe tu promo aquí]\n\n¡No te la pierdas! Contáctanos para más info. 🎨\n\n_— Cypher_`,
+        cobro: `💰 *Hola {nombre}*, te enviamos un recordatorio de pago de tu pedido.\n\nSi tienes alguna duda, con gusto te ayudamos. 🙌\n\n_— Cypher_`,
+        seguimiento: `📦 *¡Hola {nombre}!*\n\nQuería darte una actualización sobre el estado de tu pedido.\n\n[Escribe aquí la actualización]\n\n¡Gracias por tu confianza! 🎨\n\n_— Cypher_`
+    };
+
+    let currentTemplate = 'libre';
+
+    function setTemplate(key) {
+        currentTemplate = key;
+        document.querySelectorAll('.dif-template-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tpl-' + key).classList.add('active');
+        document.getElementById('dif-msg').value = TEMPLATES[key];
+        // Ocultar panel de links al cambiar plantilla
+        document.getElementById('dif-links-panel').style.display = 'none';
+    }
+
+    // ── CATEGORY FILTER ──
+    let difCategoryFilter = 'todos';
+
+    function setDifCategoryFilter(val) {
+        difCategoryFilter = val;
+        document.querySelectorAll('.dif-cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === val));
+        renderDifContacts();
+    }
+
+// Calcula las etiquetas de un cliente según sus pedidos
+    function getClientTags(pedidos) {
+        if(!pedidos || pedidos.length === 0) return [];
+        const n = pedidos.length;
+        const totales = pedidos.map(p => p.tot || 0);
+        let diasDesdeUltimo = null;
+        const lastPed = pedidos[pedidos.length - 1];
+        if(lastPed.fecha) {
+            const parts = lastPed.fecha.split('/');
+            if(parts.length >= 3) {
+                const d = new Date(parts[2], parts[1]-1, parts[0]);
+                diasDesdeUltimo = Math.floor((Date.now() - d.getTime()) / 86400000);
+            }
+        }
+        const tags = [];
+        if(n >= 5) tags.push('frecuente');
+        if(n >= 3) tags.push('recurrente');
+        if(diasDesdeUltimo !== null && diasDesdeUltimo <= 30)  tags.push('activo');
+        if(diasDesdeUltimo !== null && diasDesdeUltimo > 60 && n >= 2) tags.push('promo');
+        if(diasDesdeUltimo !== null && diasDesdeUltimo > 90)  tags.push('inactivo');
+        if(n >= 5 && diasDesdeUltimo !== null && diasDesdeUltimo <= 60) tags.push('descuento');
+        return tags;
+    }
+
+    function renderDifContacts() {
+        const wrap = document.getElementById('dif-contacts-wrap');
+        if(!wrap) return;
+        const nameFilter = (document.getElementById('dif-search')?.value || '').toLowerCase();
+        wrap.innerHTML = '';
+
+        // Destruir gráficas mini anteriores
+        Object.keys(chartInstances).forEach(k => {
+            if(k.startsWith('dif-')) { chartInstances[k].destroy(); delete chartInstances[k]; }
+        });
+
+        // Construir lista deduplicada
+        const seen = new Set();
+        const contacts = [];
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
+            if(!cli.nombre || !cli.tel) return;
+            const key = cli.tel.replace(/\D/g,'');
+            if(seen.has(key)) return;
+            seen.add(key);
+            const tags = getClientTags(cli.pedidos);
+            contacts.push({ cid, nombre: cli.nombre, tel: cli.tel, pedidos: cli.pedidos || [], tags });
+        });
+
+        // Filtrar por nombre
+        let filtered = nameFilter ? contacts.filter(c => c.nombre.toLowerCase().includes(nameFilter)) : contacts;
+
+        // Filtrar por categoría
+        if(difCategoryFilter !== 'todos') {
+            filtered = filtered.filter(c => c.tags.includes(difCategoryFilter));
+        }
+
+        if(filtered.length === 0) {
+            wrap.innerHTML = `<div class="dif-empty">No hay contactos con ese filtro.</div>`;
+            updateDifCounter();
+            return;
+        }
+
+        filtered.forEach(c => {
+            const hasPedidos = c.pedidos.length > 0;
+            const canvasId = `dif-chart-${c.cid}`;
+            const insightsId = `dif-ins-${c.cid}`;
+
+            const row = document.createElement('div');
+            row.className = 'dif-contact-row';
+            row.style.flexDirection = 'column';
+            row.style.alignItems = 'stretch';
+            row.dataset.cid = c.cid;
+            row.dataset.nombre = c.nombre;
+            row.dataset.tel = c.tel;
+
+            row.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <input type="checkbox" id="dif-chk-${c.cid}" style="accent-color:var(--accent); width:18px; height:18px; flex-shrink:0;">
+                    <label for="dif-chk-${c.cid}" style="flex:1; cursor:pointer;">
+                        <div class="dif-contact-name">${c.nombre}</div>
+                        <div class="dif-contact-tel">${c.tel}</div>
+                    </label>
+                </div>
+                ${hasPedidos ? `
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+                    <div style="position:relative; height:55px;"><canvas id="${canvasId}"></canvas></div>
+                    <div id="${insightsId}" class="trend-insights" style="margin-top:8px;"></div>
+                </div>` : `<div style="font-size:10px; color:var(--text-dim); margin-top:6px; padding-left:30px;">Sin pedidos aún</div>`}`;
+
+            row.querySelector('input').addEventListener('change', function() {
+                row.classList.toggle('selected', this.checked);
+                updateDifCounter();
+                const all = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]');
+                const chk = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]:checked');
+                document.getElementById('dif-check-all').indeterminate = chk.length > 0 && chk.length < all.length;
+                document.getElementById('dif-check-all').checked = chk.length === all.length && all.length > 0;
+            });
+
+            wrap.appendChild(row);
+        });
+
+        // Dibujar mini gráficas e insights después del render
+        requestAnimationFrame(() => {
+            filtered.forEach(c => {
+                if(c.pedidos.length === 0) return;
+                const canvas = document.getElementById(`dif-chart-${c.cid}`);
+                if(!canvas) return;
+                const labels = c.pedidos.map((p,i) => p.fecha ? p.fecha.split('/').slice(0,2).join('/') : `P${i+1}`);
+                const data   = c.pedidos.map(p => p.tot || 0);
+                const isLight = document.body.classList.contains('light');
+                const gridColor  = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+                const labelColor = isLight ? '#888' : '#555';
+                chartInstances[`dif-${c.cid}`] = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data,
+                            borderColor: '#25D366',
+                            backgroundColor: 'rgba(37,211,102,0.08)',
+                            borderWidth: 1.5,
+                            pointBackgroundColor: '#25D366',
+                            pointRadius: data.length === 1 ? 4 : 2,
+                            tension: 0.35, fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: {
+                            callbacks: { label: ctx => ` $${ctx.parsed.y.toLocaleString()} MXN` }
+                        }},
+                        scales: {
+                            x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 8 }, maxTicksLimit: 5 } },
+                            y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 8 },
+                                callback: v => `$${(v/1000).toFixed(0)}k`
+                            }}
+                        }
+                    }
+                });
+                renderInsights(`dif-ins-${c.cid}`, c.pedidos);
+            });
+        });
+
+        updateDifCounter();
+    }
+
+    function onDifCheck(checkbox) {
+        const row = checkbox.closest('.dif-contact-row');
+        row.classList.toggle('selected', checkbox.checked);
+        updateDifCounter();
+        // Sincronizar "seleccionar todos"
+        const all = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]');
+        const checked = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]:checked');
+        document.getElementById('dif-check-all').indeterminate = checked.length > 0 && checked.length < all.length;
+        document.getElementById('dif-check-all').checked = checked.length === all.length && all.length > 0;
+    }
+
+    function toggleSelectAll(checked) {
+        document.querySelectorAll('#dif-contacts-wrap .dif-contact-row').forEach(row => {
+            row.querySelector('input').checked = checked;
+            row.classList.toggle('selected', checked);
+        });
+        updateDifCounter();
+    }
+
+    function updateDifCounter() {
+        const n = document.querySelectorAll('#dif-contacts-wrap input[type=checkbox]:checked').length;
+        const el = document.getElementById('dif-counter');
+        if(el) el.textContent = `${n} seleccionado${n !== 1 ? 's' : ''}`;
+    }
+
+    function generateDifLinks() {
+        const msg = document.getElementById('dif-msg').value.trim();
+        if(!msg) return alert('Escribe un mensaje antes de generar los links.');
+
+        const selected = [];
+        document.querySelectorAll('#dif-contacts-wrap .dif-contact-row').forEach(row => {
+            if(row.querySelector('input').checked) {
+                selected.push({ nombre: row.dataset.nombre, tel: row.dataset.tel });
+            }
+        });
+
+        if(selected.length === 0) return alert('Selecciona al menos un contacto.');
+
+        const panel = document.getElementById('dif-links-panel');
+        const wrap  = document.getElementById('dif-links-wrap');
+        wrap.innerHTML = '';
+
+        selected.forEach(c => {
+            const personalMsg = msg.replace(/\{nombre\}/gi, c.nombre.split(' ')[0]);
+            const tel = c.tel.replace(/\D/g, '');
+            const url = `https://wa.me/52${tel}?text=${encodeURIComponent(personalMsg)}`;
+
+            const item = document.createElement('div');
+            item.className = 'dif-link-item';
+            item.innerHTML = `
+                <div>
+                    <div class="dif-link-name">${c.nombre}</div>
+                    <div style="font-size:10px; color:var(--text-dim)">${c.tel}</div>
+                </div>
+                <button class="dif-link-btn" onclick="window.open('${url}', '_blank'); this.textContent='✅ Abierto'; this.style.background='#1aab55'">
+                    ABRIR WA
+                </button>`;
+            wrap.appendChild(item);
+        });
+
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+// ── ESTADO DEL PEDIDO ──
+    function cycleEstado(cid, idx) {
+        var estados = ['proceso', 'listo', 'enviado'];
+        var p = clipData[cid].pedidos[idx];
+        var current = p.estado || 'proceso';
+        var next = estados[(estados.indexOf(current) + 1) % estados.length];
+        var updates = {};
+        updates['clientes_v3/' + cid + '/pedidos/' + idx + '/estado'] = next;
+        // Al marcar como enviado, guardar la fecha de envío para auto-ocultar en 3 días
+        if(next === 'enviado') {
+            updates['clientes_v3/' + cid + '/pedidos/' + idx + '/fechaEnvio'] = new Date().toISOString();
+        } else {
+            // Si retrocede de enviado, limpiar la fecha
+            updates['clientes_v3/' + cid + '/pedidos/' + idx + '/fechaEnvio'] = null;
+        }
+        db.ref().update(updates);
+    }
+
+    // ── TOGGLE CLIENTES INACTIVOS ──
+    function toggleInactivos() {
+        var body = document.getElementById('inactivos-body');
+        var arrow = document.getElementById('inactivos-arrow');
+        var isOpen = body.style.display !== 'none';
+        body.style.display = isOpen ? 'none' : 'block';
+        arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+        // Dibujar gráficas de inactivos la primera vez que se abre
+        if(!isOpen && !body.dataset.graficasCargadas) {
+            body.dataset.graficasCargadas = '1';
+            Object.keys(clipData).forEach(function(cid) {
+                var cli = clipData[cid];
+                if(!cli.pedidos || cli.pedidos.length === 0) return;
+                var tieneActivo = cli.pedidos.some(function(p){ return (p.estado||'proceso') !== 'enviado'; });
+                if(tieneActivo) return; // solo inactivos
+                var canvas = document.getElementById('chart-' + cid);
+                if(canvas) drawTrendChartWithHistory(cid, cli.pedidos);
+            });
+        }
+    }
+
+    // ── TOGGLE PEDIDOS ENVIADOS ──
+    function toggleEnviados(el) {
+        el.classList.toggle('open');
+        el.nextElementSibling.classList.toggle('open');
+    }
+
+    // ── NOTAS RÁPIDAS ──
+    function saveNota(cid) {
+        const val = document.getElementById(`nota-${cid}`)?.value || '';
+        db.ref(`clientes_v3/${cid}/nota`).set(val);
+    }
+
+    // ── BÚSQUEDA GLOBAL ──
+    function globalSearch(q) {
+        const res = document.getElementById('global-results');
+        if(!q || q.length < 2) { res.style.display = 'none'; return; }
+        const ql = q.toLowerCase();
+        const hits = [];
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
+            // Buscar por nombre de cliente
+            if(cli.nombre && cli.nombre.toLowerCase().includes(ql)) {
+                const total = cli.pedidos ? cli.pedidos.reduce((a,p)=>a+(p.tot||0),0) : 0;
+                hits.push({ type:'cliente', cid, nombre: cli.nombre, sub: `${cli.pedidos?.length||0} pedidos · $${total.toLocaleString()} MXN total` });
+            }
+            // Buscar por items dentro de pedidos
+            if(cli.pedidos) {
+                cli.pedidos.forEach((p, idx) => {
+                    if(p.items) {
+                        p.items.forEach(it => {
+                            if(it.nom && it.nom.toLowerCase().includes(ql)) {
+                                hits.push({ type:'pedido', cid, idx, nombre: cli.nombre, sub: `Pedido ${idx+1} · ${it.nom} · $${p.tot} MXN` });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        if(hits.length === 0) { res.innerHTML = `<div class="gr-item"><div class="gr-item-sub">Sin resultados</div></div>`; res.style.display='block'; return; }
+        res.innerHTML = hits.slice(0,8).map(h => `
+            <div class="gr-item" onclick="globalSearchGo('${h.cid}', ${h.idx !== undefined ? h.idx : -1})">
+                <div class="gr-item-name">${h.nombre} <span class="gr-tag">${h.type==='cliente'?'Cliente':'Pedido'}</span></div>
+                <div class="gr-item-sub">${h.sub}</div>
+            </div>`).join('');
+        res.style.display = 'block';
+    }
+
+    function globalSearchGo(cid, idx) {
+        document.getElementById('global-results').style.display = 'none';
+        document.getElementById('global-search').value = '';
+        showTab('list');
+        // Scroll a la tarjeta del cliente
+        requestAnimationFrame(() => {
+            const cards = document.querySelectorAll('.client-item');
+            cards.forEach(card => {
+                const nombre = clipData[cid]?.nombre || '';
+                if(card.innerText.startsWith(nombre)) {
+                    card.scrollIntoView({ behavior:'smooth', block:'center' });
+                    card.style.outline = '2px solid var(--accent)';
+                    setTimeout(() => card.style.outline = '', 2000);
+                }
+            });
+        });
+    }
+
+    // ── DASHBOARD ──
+    let dashChartInstance = null;
+
+    // Gastos en Firebase
+    let gastosData = [];
+    db.ref('gastos_v1').on('value', snap => {
+        gastosData = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,key:k})) : [];
+        // Re-renderizar dashboard si está visible
+        if(document.getElementById('tab-dash').style.display !== 'none') renderDashboard();
+    });
+
+    function addGasto() {
+        const desc  = document.getElementById('gasto-desc').value.trim();
+        const monto = parseFloat(document.getElementById('gasto-monto').value);
+        if(!desc || !monto || monto <= 0) return alert('Escribe descripción y monto válido');
+        const fecha = new Date().toLocaleDateString('es-MX');
+        db.ref('gastos_v1').push({ desc, monto, fecha });
+        document.getElementById('gasto-desc').value  = '';
+        document.getElementById('gasto-monto').value = '';
+    }
+
+    function deleteGasto(key) {
+        if(!confirm('¿Eliminar este gasto?')) return;
+        db.ref(`gastos_v1/${key}`).remove();
+    }
+
+    function resetGastos() {
+        if(!confirm('¿Reiniciar TODOS los gastos? Esta acción no se puede deshacer.')) return;
+        db.ref('gastos_v1').remove();
+    }
+
+    function renderDashboard() {
+        // Recopilar pedidos SOLO de clientes con tarjetas en Base
+        const allPedidos = [];
+        const clienteTotales = {};
+        const clientesConTarjetas = new Set();
+
+        Object.keys(clipData).forEach(cid => {
+            const cli = clipData[cid];
+            if(!cli.pedidos || cli.pedidos.length === 0) return;
+            clientesConTarjetas.add(cid);
+            cli.pedidos.forEach(p => {
+                allPedidos.push({ ...p, clienteNombre: cli.nombre, cid });
+
+                // Ingresos reales = solo lo marcado como pagado en las tarjetas
+                let ingresoPedido = 0;
+                if(p.pagA) ingresoPedido += (p.ade || 0);
+                if(p.pagS) ingresoPedido += (p.sal || 0);
+                if(p.pagE) ingresoPedido += (p.env || 0);
+                clienteTotales[cid] = (clienteTotales[cid] || 0) + ingresoPedido;
+            });
+        });
+
+        // Ingresos = suma de badges pagados en todas las tarjetas
+        const totalIngresos = allPedidos.reduce((a, p) => {
+            let ing = 0;
+            if(p.pagA) ing += (p.ade || 0);
+            if(p.pagS) ing += (p.sal || 0);
+            if(p.pagE) ing += (p.env || 0);
+            return a + ing;
+        }, 0);
+
+        const totalGastos   = gastosData.reduce((a,g) => a+(g.monto||0), 0);
+        const utilidad      = totalIngresos - totalGastos;
+        const ticketProm    = allPedidos.length ? Math.round(totalIngresos / allPedidos.length) : 0;
+        // Clientes = solo los que tienen al menos una tarjeta en Base
+        const totalClientes = clientesConTarjetas.size;
+
+        // KPIs
+        const utilClass = utilidad >= 0 ? 'dash-utilidad-pos' : 'dash-utilidad-neg';
+        document.getElementById('dash-kpis').innerHTML = `
+            <div class="dash-kpi"><div class="dash-kpi-val">$${(totalIngresos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Cobrado</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val" style="color:#ff4757">$${(totalGastos/1000).toFixed(1)}k</div><div class="dash-kpi-label">Gastos</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val ${utilClass}">$${(utilidad/1000).toFixed(1)}k</div><div class="dash-kpi-label">Utilidad</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-val">${totalClientes}</div><div class="dash-kpi-label">Clientes</div></div>`;
+
+        const isLight   = document.body.classList.contains('light');
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+        const labelColor= isLight ? '#888' : '#555';
+
+        // ── GRÁFICA AGRUPADA: Ingresos vs Gastos por mes ──
+        const byMonth = {};
+        const gastosByMonth = {};
+
+        // Ingresos por mes (cobrados)
+        allPedidos.forEach(p => {
+            if(!p.fecha) return;
+            const parts = p.fecha.split('/');
+            if(parts.length < 3) return;
+            const key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+            let ing = 0;
+            if(p.pagA) ing += (p.ade || 0);
+            if(p.pagS) ing += (p.sal || 0);
+            if(p.pagE) ing += (p.env || 0);
+            byMonth[key] = (byMonth[key] || 0) + ing;
+        });
+
+        // Gastos por mes
+        gastosData.forEach(g => {
+            if(!g.fecha) return;
+            // fecha guardada como dd/mm/yyyy o similar
+            const parts = g.fecha.split('/');
+            let key;
+            if(parts.length >= 3) {
+                // día/mes/año
+                key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+            } else {
+                key = new Date().toISOString().slice(0,7).replace('-','') ;
+            }
+            gastosByMonth[key] = (gastosByMonth[key] || 0) + (g.monto || 0);
+        });
+
+// Unir todos los meses presentes en ingresos o gastos
+        const allMonthKeys = [...new Set([...Object.keys(byMonth), ...Object.keys(gastosByMonth)])].sort();
+        const monthLabels = allMonthKeys.map(k => {
+            const [y,m] = k.split('-');
+            return ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)] + ' ' + y.slice(2);
+        });
+        const ingresoData = allMonthKeys.map(k => byMonth[k] || 0);
+        const gastoData   = allMonthKeys.map(k => gastosByMonth[k] || 0);
+
+        if(dashChartInstance) dashChartInstance.destroy();
+        const ctx = document.getElementById('dash-chart');
+        if(ctx) {
+            dashChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthLabels.length ? monthLabels : ['Sin datos'],
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresoData.length ? ingresoData : [0],
+                            backgroundColor: 'rgba(37,211,102,0.75)',
+                            borderRadius: 8, borderSkipped: false,
+                        },
+                        {
+                            label: 'Gastos',
+                            data: gastoData.length ? gastoData : [0],
+                            backgroundColor: 'rgba(255,71,87,0.65)',
+                            borderRadius: 8, borderSkipped: false,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { color: labelColor, font: { size: 10, family: 'Inter' }, boxWidth: 12, padding: 14 }
+                        },
+                        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()} MXN` }}
+                    },
+                    scales: {
+                        x: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}} },
+                        y: { grid:{color:gridColor}, ticks:{color:labelColor, font:{size:9}, callback: v=>`$${(v/1000).toFixed(0)}k`}}
+                    }
+                }
+            });
+        }
+
+
+
+        // Lista de gastos individuales
+        const listEl = document.getElementById('dash-gastos-list');
+        if(listEl) {
+            listEl.innerHTML = gastosData.length
+                ? [...gastosData].reverse().map(g => `
+                    <div class="gasto-item">
+                        <div style="flex:1">
+                            <div class="gasto-desc">${g.desc}</div>
+                            <div class="gasto-fecha">${g.fecha || ''}</div>
+                        </div>
+                        <div class="gasto-monto">-$${(g.monto||0).toLocaleString()}</div>
+                        <button class="gasto-del" onclick="deleteGasto('${g.key}')">×</button>
+                    </div>`).join('')
+                : '<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:16px">Sin gastos registrados</div>';
+        }
+
+        // Kanban — pedidos en cola
+        // Las tarjetas "enviado" con más de 3 días no se muestran en Kanban
+        // pero SUS DATOS siguen en allPedidos para las gráficas financieras
+        var DIAS_OCULTAR_ENVIADO = 3;
+        var ahora = Date.now();
+        var kanbanCols = { proceso:[], listo:[], enviado:[] };
+        Object.keys(clipData).forEach(function(cid) {
+            var cli = clipData[cid];
+            if(!cli.pedidos) return;
+            cli.pedidos.forEach(function(p, idx) {
+                var estado = p.estado || 'proceso';
+                if(kanbanCols[estado] === undefined) return;
+                // Si está enviado, verificar si ya pasaron 3 días
+                // Usa fechaEnvio si existe, si no usa la fecha del pedido como respaldo
+                if(estado === 'enviado') {
+                    var fechaRef = null;
+                    if(p.fechaEnvio) {
+                        fechaRef = new Date(p.fechaEnvio);
+                    } else if(p.fecha) {
+                        var partes = p.fecha.split('/');
+                        if(partes.length === 3) fechaRef = new Date(partes[2], partes[1]-1, partes[0]);
+                    }
+                    if(fechaRef) {
+                        var diasTranscurridos = (ahora - fechaRef.getTime()) / 86400000;
+                        if(diasTranscurridos >= DIAS_OCULTAR_ENVIADO) return;
+                    }
+                }
+                kanbanCols[estado].push({ cid: cid, idx: idx, nombre: cli.nombre, tot: p.tot, fecha: p.fecha });
+            });
+        });
+        ['proceso','listo','enviado'].forEach(col => {
+            const el = document.getElementById(`kanban-${col}`);
+            if(!el) return;
+            el.innerHTML = kanbanCols[col].length
+                ? kanbanCols[col].map(c => `
+                    <div class="kanban-card" onclick="globalSearchGo('${c.cid}', ${c.idx})">
+                        <div class="kanban-card-name">${c.nombre}</div>
+                        <div class="kanban-card-total">$${(c.tot||0).toLocaleString()}</div>
+                        <div class="kanban-card-fecha">${c.fecha || '—'}</div>
+                    </div>`).join('')
+                : `<div class="kanban-empty">Vacío</div>`;
+        });
+
+        // Top clientes
+        const topClientes = Object.keys(clienteTotales)
+            .sort((a,b) => clienteTotales[b]-clienteTotales[a])
+            .slice(0,5);
+        document.getElementById('dash-top').innerHTML = topClientes.map(cid => `
+            <div class="dash-top-item">
+                <div class="dash-top-name">${clipData[cid]?.nombre || '—'}</div>
+                <div class="dash-top-val">$${clienteTotales[cid].toLocaleString()}</div>
+            </div>`).join('') || '<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:20px">Sin datos aún</div>';
+    }
+
+
+    // ── THEME TOGGLE ──
+    const THEME_KEY = 'fm_theme';
+    function applyTheme(theme){
+        if(theme === 'light'){
+            document.body.classList.add('light');
+            document.getElementById('theme-toggle-btn').textContent = '🌙';
+        } else {
+            document.body.classList.remove('light');
+            document.getElementById('theme-toggle-btn').textContent = '☀️';
+        }
+        localStorage.setItem(THEME_KEY, theme);
+    }
+    function toggleTheme(){
+        const current = document.body.classList.contains('light') ? 'light' : 'dark';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+        // Redibujar gráficas con los colores del nuevo tema
+        requestAnimationFrame(() => {
+            Object.keys(clipData).forEach(cid => {
+                const cli = clipData[cid];
+                if(cli.pedidos && cli.pedidos.length >= 1) drawTrendChart(cid, cli.pedidos);
+            });
+        });
+    }
+    // El tema se aplica en onAuthStateChanged al mostrar la app
+</script>
+
+<!-- Botón logout -->
+<button onclick="fbLogout()" title="Cerrar sesión"
+  style="position:fixed;bottom:24px;left:24px;z-index:999;background:var(--card-bg);
+         border:1px solid var(--border);border-radius:50px;padding:10px 16px;
+         font-size:11px;font-weight:700;font-family:var(--font-title);cursor:pointer;
+         color:var(--text-dim);box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.2s">
+  <span id="user-email-badge"></span> · SALIR
+</button>
+
+<button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+
+</div><!-- /main-app-wrapper -->
+</body>
+</html>
